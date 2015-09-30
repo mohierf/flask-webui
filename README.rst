@@ -1,6 +1,9 @@
 Alignak Web UI
 ==============
 
+.. image:: https://travis-ci.org/mohierf/flask-webui.svg?branch=master
+    :target: https://travis-ci.org/mohierf/flask-webui
+
 
 *Web User Interface for Alignak backend ...*
 
