@@ -1,0 +1,9 @@
+include README.rst LICENSE AUTHORS.txt ChangeLog requirements.txt
+include alignak_webui/settings.cfg
+include start.py
+recursive-include alignak_webui/ *.*
+recursive-include alignak_webui/templates *
+recursive-include alignak_webui/static *
+recursive-include alignak_webui/plugins *
+
+recursive-exclude alignak_webui/ *.pyc
