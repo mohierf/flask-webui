@@ -216,6 +216,7 @@ def main():
     except Exception as e:
         print("Command '%s' failed, exception: %s / %s", args['<command>'], type(e), str(e))
         app.logger.error("failed to launch command '%s'", args['<command>'])
+        sys.exit(3)
 
 if __name__ == "__main__":
     main()

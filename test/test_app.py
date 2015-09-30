@@ -22,6 +22,7 @@
 
 import unittest
 import subprocess
+from subprocess import CalledProcessError
 import os, sys, signal
 import time
 
@@ -42,8 +43,7 @@ import alignak_webui
 from alignak_webui import app, __application__, settings, __version__, __copyright__
 from alignak_webui import __releasenotes__, __license__, __doc_url__, get_version
 
-# extend the class unittest.TestCase
-class test_config(unittest.TestCase):
+class test_1_run(unittest.TestCase):
 
     def test_1_manifest(self):
         print 'test config'
@@ -62,32 +62,71 @@ class test_config(unittest.TestCase):
         print
         print "Launching application ..."
         os.chdir("..")
-        process = subprocess.Popen(['python', 'start.py', '-h'])
-        print 'PID = ', process.pid
-        time.sleep(3.0)
-        print "Killing application ..."
-        process.kill()
+        output = subprocess.check_output(['python', 'start.py', '-h'])
         os.chdir(mydir)
+        assert '{command} [-h] [-d|-v] [-c=cfg_file] [-l=logs_file] [-a=access_log] <command>' in output
         # output = sys.stdout.getvalue().strip()
         # print output
         # ok_('Usage:' in output)
         # Output do not seem to be available because of process launch ...
 
-    def test_2_start_version(self):
+    def test_3_start_version(self):
         print ('test application start - show version')
 
         mydir = os.getcwd()
         print
         print "Launching application ..."
         os.chdir("..")
-        process = subprocess.Popen(['python', 'start.py', '--version'])
-        print 'PID = ', process.pid
-        time.sleep(3.0)
-        print "Killing application ..."
-        process.kill()
+        output = subprocess.check_output(['python', 'start.py', '--version'])
+        print output
         os.chdir(mydir)
 
-    def test_3_start_application(self):
+    def test_4_start_bad_argument(self):
+        print ('test application start - bad argument')
+
+        mydir = os.getcwd()
+        print
+        print "Launching application ..."
+        os.chdir("..")
+        with assert_raises(CalledProcessError) as cm:
+            process = subprocess.check_call(['python', 'start.py', '--error'])
+        ex = cm.exception # raised exception is available through exception property of context
+        print 'exception:', str(ex)
+        assert 'returned non-zero exit status 1' in str(ex)
+        os.chdir(mydir)
+
+    def test_5_start_application_error(self):
+        print ('test application start - error in application commande')
+
+        mydir = os.getcwd()
+        print
+        print "Launching application ..."
+        os.chdir("..")
+        # with assert_raises(CalledProcessError) as cm:
+        output = subprocess.check_call(['python', 'start.py', '-v', 'error'])
+        # ex = cm.exception
+        # print 'exception:', str(ex)
+        # assert 'returned non-zero exit status 1' in str(ex)
+        os.chdir(mydir)
+
+    def test_7_start_configuration_not_found(self):
+        print ('test application start - configuration file not found')
+
+        mydir = os.getcwd()
+        print
+        print "Launching application ..."
+        os.chdir("..")
+        with assert_raises(CalledProcessError) as cm:
+            output = subprocess.check_call(['python', 'start.py', '-v', '-c', 'test.cfg', 'start'])
+        ex = cm.exception
+        print 'exception:', str(ex)
+        assert 'returned non-zero exit status 1' in str(ex)
+        os.chdir(mydir)
+
+
+class test_2_server(unittest.TestCase):
+
+    def test_1_start_application(self):
         print ('test application start in normal mode (no logs)')
 
         mydir = os.getcwd()
@@ -96,9 +135,11 @@ class test_config(unittest.TestCase):
         os.chdir("..")
         process = subprocess.Popen(['python', 'start.py', 'start'])
         print 'PID = ', process.pid
-        time.sleep(3.0)
+        time.sleep(2.0)
         print "Killing application ..."
-        process.kill()
+        # Application starts with default configuration (debug=False)
+        # If debut is True 2 processes are started and the 2nd process can not be killed !
+        process.terminate()
         os.chdir(mydir)
 
     def test_4_start_application_verbose(self):
@@ -112,7 +153,7 @@ class test_config(unittest.TestCase):
         print 'PID = ', process.pid
         time.sleep(3.0)
         print "Killing application ..."
-        process.kill()
+        process.terminate()
         os.chdir(mydir)
 
     def test_5_start_application_debug(self):
@@ -126,35 +167,7 @@ class test_config(unittest.TestCase):
         print 'PID = ', process.pid
         time.sleep(3.0)
         print "Killing application ..."
-        process.kill()
-        os.chdir(mydir)
-
-    def test_6_start_application_error(self):
-        print ('test application start - error in application commande')
-
-        mydir = os.getcwd()
-        print
-        print "Launching application ..."
-        os.chdir("..")
-        process = subprocess.Popen(['python', 'start.py', '-v', 'error'])
-        print 'PID = ', process.pid
-        time.sleep(3.0)
-        print "Killing application ..."
-        process.kill()
-        os.chdir(mydir)
-
-    def test_7_start_configuration_not_found(self):
-        print ('test application start - configuration file not found')
-
-        mydir = os.getcwd()
-        print
-        print "Launching application ..."
-        os.chdir("..")
-        process = subprocess.Popen(['python', 'start.py', '-v', '-c', 'test.cfg', 'start'])
-        print 'PID = ', process.pid
-        time.sleep(3.0)
-        print "Killing application ..."
-        process.kill()
+        process.terminate()
         os.chdir(mydir)
 
     def test_8_start_configuration(self):
@@ -168,5 +181,9 @@ class test_config(unittest.TestCase):
         print 'PID = ', process.pid
         time.sleep(3.0)
         print "Killing application ..."
-        process.kill()
+        process.terminate()
         os.chdir(mydir)
+
+
+if __name__ == '__main__':
+    unittest.main()
