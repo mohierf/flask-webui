@@ -4,6 +4,9 @@ Alignak Web UI
 .. image:: https://travis-ci.org/mohierf/flask-webui.svg?branch=master
     :target: https://travis-ci.org/mohierf/flask-webui
 
+.. image:: https://coveralls.io/repos/mohierf/flask-webui/badge.svg?branch=master&service=github
+  :target: https://coveralls.io/github/mohierf/flask-webui?branch=master
+
 
 *Web User Interface for Alignak backend ...*
 
