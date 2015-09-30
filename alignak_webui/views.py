@@ -35,12 +35,6 @@ def index():
     return 'You are not logged in'
 
 
-@app.route('/test')
-def test():
-    """ ../.. """
-    return 'Test'
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """ ../.. """
@@ -75,7 +69,7 @@ def shutdown_server():
     func()
 
 
-@app.route('/shutdown', methods=['GET', 'POST'])
+@app.route('/shutdown', methods=['POST'])
 def shutdown():
     """ ../.. """
     shutdown_server()
