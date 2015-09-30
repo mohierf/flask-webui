@@ -25,19 +25,25 @@ Main application views and routes
 from flask import Flask, session, redirect, url_for, escape, request
 from alignak_webui import app
 
+
 @app.route('/')
 @app.route('/index')
 def index():
+    """ ../.. """
     if 'username' in session:
         return 'Logged in as %s' % escape(session['username'])
     return 'You are not logged in'
 
+
 @app.route('/test')
 def test():
+    """ ../.. """
     return 'Test'
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """ ../.. """
     if request.method == 'POST':
         session['username'] = request.form['username']
         return redirect(url_for('index'))
@@ -51,8 +57,10 @@ def login():
             </form>
         '''
 
+
 @app.route('/logout')
 def logout():
+    """ ../.. """
     # remove the username from the session if it's there
     session.pop('username', None)
     return redirect(url_for('index'))
@@ -60,12 +68,15 @@ def logout():
 
 # Shutdown Web server ...
 def shutdown_server():
+    """ ../.. """
     func = request.environ.get('werkzeug.server.shutdown')
     if func is None:
         raise RuntimeError('Not running with the Werkzeug Server')
     func()
 
+
 @app.route('/shutdown', methods=['GET', 'POST'])
 def shutdown():
+    """ ../.. """
     shutdown_server()
     return 'Server shutting down...'

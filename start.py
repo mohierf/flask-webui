@@ -38,13 +38,15 @@ Commands:
 import os
 import sys
 from docopt import docopt
-from configparser import  ConfigParser
+from configparser import ConfigParser
 from flask import Flask, session, redirect, url_for, escape, request
 import logging
 from logging import DEBUG, INFO, WARNING
 from logging.handlers import TimedRotatingFileHandler
 from datetime import timedelta
-from alignak_webui import app, __application__, settings, __version__, __copyright__, __releasenotes__, __license__, __doc_url__
+from alignak_webui import app, __application__, settings, __version__, __copyright__
+from alignak_webui import __releasenotes__, __license__, __doc_url__
+
 
 def main():
     args = docopt(__doc__, help=True, options_first=True, version=__version__)
@@ -59,7 +61,7 @@ def main():
     else:
         app.logger.setLevel(WARNING)
 
-    #Set and read configuration file
+    # Set and read configuration file
     cfg_file = args['--config']
     print 'Required configuration file:', cfg_file
     if not os.path.isabs(cfg_file):
@@ -99,7 +101,9 @@ def main():
                     if isinstance(app_default, timedelta):
                         app.config[key.upper()] = timedelta(value)
                     elif isinstance(app_default, bool):
-                        app.config[key.upper()] = True if value in ['true', 'True', 'on', 'On', 'y', 'yes', '1'] else False
+                        app.config[key.upper()] = True if value in [
+                            'true', 'True', 'on', 'On', 'y', 'yes', '1'
+                        ] else False
                     elif isinstance(app_default, float):
                         app.config[key.upper()] = float(value)
                     elif isinstance(app_default, int):
@@ -210,7 +214,7 @@ def main():
                 debug=app.config['DEBUG']
             )
     except Exception as e:
-        print("failed to launch command '%s', exception: %s / %s", args['<command>'], type(e), str(e))
+        print("Command '%s' failed, exception: %s / %s", args['<command>'], type(e), str(e))
         app.logger.error("failed to launch command '%s'", args['<command>'])
 
 if __name__ == "__main__":

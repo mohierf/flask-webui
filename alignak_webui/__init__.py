@@ -42,6 +42,7 @@ settings = {
     'PORT': "5000"
 }
 
+
 # setup.py imports this module to gather package version
 def get_version():
     """
