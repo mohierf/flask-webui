@@ -22,41 +22,82 @@
 """
 Main application views and routes
 """
-from flask import Flask, session, redirect, url_for, escape, request
+# import flask
+from flask import Flask, session, redirect, url_for, escape, request, render_template, flash, get_flashed_messages
+import flask_login
+from flask.ext.login import LoginManager, UserMixin, login_required, current_user, login_user, logout_user
+
 from alignak_webui import app
+from alignak_webui.user import User
 
 
 @app.route('/')
 @app.route('/index')
 def index():
     """ ../.. """
-    if 'username' in session:
-        return 'Logged in as %s' % escape(session['username'])
-    return 'You are not logged in'
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    """ ../.. """
-    if request.method == 'POST':
-        session['username'] = request.form['username']
-        return redirect(url_for('index'))
-    else:
-        app.logger.info("Login request")
-
-        return '''
-            <form action="" method="post">
-                <p><input type=text name=username>
-                <p><input type=submit value=Login>
-            </form>
+    return (
         '''
+            <h1>Hello {1}</h1>
+            <p style="color: #f00;">{0}</p>
+            <p><a href="/logout">Logout</a></p>
+            <p><a href="/login">Login</a></p>
+        '''.format(
+            # flash message
+            ', '.join([ str(m) for m in get_flashed_messages() ]),
+            current_user.get_id() or 'Guest'
+        )
+    )
+
+@app.route("/protected/",methods=["GET"])
+@login_required
+def protected():
+    return Response(response="Hello Protected World!", status=200)
+
+
+
+@app.route('/register' , methods=['GET','POST'])
+def register():
+    if request.method == 'GET':
+        return render_template('register.html')
+    user = User(request.form['username'], request.form['password'], request.form['email'])
+    # db.session.add(user)
+    # db.session.commit()
+    flash('User successfully registered')
+    return redirect(url_for('login'))
+
+
+@app.route('/login',methods=['GET','POST'])
+def login():
+    if request.method == 'GET':
+        app.logger.info("show login form ...")
+        return render_template('login.html')
+
+    username = request.form['username']
+    password = request.form['password']
+    app.logger.info("request authentication for: %s", username)
+    user = User(username, password)
+    login_user(user)
+    flash('Logged in successfully.')
+    next = request.args.get('next')
+
+    return redirect(next or url_for('index'))
+    return render_template('login.html', form=form)
+
+@app.route('/login/check', methods=['post'])
+def login_check():
+    # validate username and password
+    user = User.get(request.form['username'])
+    if (user and user.password == request.form['password']):
+        login_user(user)
+    else:
+        flash('Username or password incorrect')
+
+    return redirect(url_for('index'))
 
 
 @app.route('/logout')
 def logout():
-    """ ../.. """
-    # remove the username from the session if it's there
-    session.pop('username', None)
+    logout_user()
     return redirect(url_for('index'))
 
 

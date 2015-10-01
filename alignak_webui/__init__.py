@@ -22,7 +22,9 @@
 """
 Web User Interface for Alignak REST backend
 """
-from flask import Flask
+import flask
+import flask_login
+from alignak_webui.user import User
 
 # Application manifest
 VERSION = (0, 1, 0)
@@ -34,13 +36,41 @@ __license__ = u"GNU AGPL version 3"
 __releasenotes__ = u"""Bootstrap 3 User Interface for Alignak backend"""
 __doc_url__ = u"https://github.com/Alignak-monitoring-contrib/alignak-webui/wiki"
 
-app = Flask(__name__.split('.')[0])
+# Main Flask application
+app = flask.Flask(__name__.split('.')[0])
 
+# Default configparser settings
 settings = {
     'DEBUG': "False",
     'HOST': "127.0.0.1",
     'PORT': "5000"
 }
+
+# Login manager
+login_manager = flask_login.LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    app.logger.info("User loader: %s", user_id)
+    return User.get(user_id)
+
+@login_manager.request_loader
+def load_user(request):
+    app.logger.info("load_user")
+    token = request.headers.get('Authorization')
+    if token is None:
+        token = request.args.get('token')
+
+    if token is not None:
+        username,password = token.split(":") # naive token
+        user_entry = User.get(username)
+        if (user_entry is not None):
+            user = User(user_entry[0],user_entry[1])
+            if (user.password == password):
+                return user
+    return None
 
 
 # setup.py imports this module to gather package version

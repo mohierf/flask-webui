@@ -62,7 +62,7 @@ class test_1_run(unittest.TestCase):
         print
         print "Launching application ..."
         os.chdir("..")
-        output = subprocess.check_output(['python', 'start.py', '-h'])
+        output = subprocess.check_output(['python', 'app.py', '-h'])
         os.chdir(mydir)
         assert '{command} [-h] [-d|-v] [-c=cfg_file] [-l=logs_file] [-a=access_log] <command>' in output
         # output = sys.stdout.getvalue().strip()
@@ -77,7 +77,7 @@ class test_1_run(unittest.TestCase):
         print
         print "Launching application ..."
         os.chdir("..")
-        output = subprocess.check_output(['python', 'start.py', '--version'])
+        output = subprocess.check_output(['python', 'app.py', '--version'])
         print output
         os.chdir(mydir)
 
@@ -89,7 +89,7 @@ class test_1_run(unittest.TestCase):
         print "Launching application ..."
         os.chdir("..")
         with assert_raises(CalledProcessError) as cm:
-            process = subprocess.check_call(['python', 'start.py', '--error'])
+            process = subprocess.check_call(['python', 'app.py', '--error'])
         ex = cm.exception # raised exception is available through exception property of context
         print 'exception:', str(ex)
         assert 'returned non-zero exit status 1' in str(ex)
@@ -103,7 +103,7 @@ class test_1_run(unittest.TestCase):
         print "Launching application ..."
         os.chdir("..")
         # with assert_raises(CalledProcessError) as cm:
-        output = subprocess.check_call(['python', 'start.py', '-v', 'error'])
+        output = subprocess.check_call(['python', 'app.py', '-v', 'error'])
         # ex = cm.exception
         # print 'exception:', str(ex)
         # assert 'returned non-zero exit status 1' in str(ex)
@@ -117,7 +117,7 @@ class test_1_run(unittest.TestCase):
         print "Launching application ..."
         os.chdir("..")
         with assert_raises(CalledProcessError) as cm:
-            output = subprocess.check_call(['python', 'start.py', '-v', '-c', 'test.cfg', 'start'])
+            output = subprocess.check_call(['python', 'app.py', '-v', '-c', 'test.cfg', 'start'])
         ex = cm.exception
         print 'exception:', str(ex)
         assert 'returned non-zero exit status 1' in str(ex)
@@ -133,7 +133,7 @@ class test_2_server(unittest.TestCase):
         print
         print "Launching application ..."
         os.chdir("..")
-        process = subprocess.Popen(['python', 'start.py', 'start'])
+        process = subprocess.Popen(['python', 'app.py', 'start'])
         print 'PID = ', process.pid
         time.sleep(2.0)
         print "Killing application ..."
@@ -149,7 +149,7 @@ class test_2_server(unittest.TestCase):
         print
         print "Launching application ..."
         os.chdir("..")
-        process = subprocess.Popen(['python', 'start.py', '-v', 'start'])
+        process = subprocess.Popen(['python', 'app.py', '-v', 'start'])
         print 'PID = ', process.pid
         time.sleep(3.0)
         print "Killing application ..."
@@ -163,7 +163,7 @@ class test_2_server(unittest.TestCase):
         print
         print "Launching application ..."
         os.chdir("..")
-        process = subprocess.Popen(['python', 'start.py', '-d', 'start'])
+        process = subprocess.Popen(['python', 'app.py', '-d', 'start'])
         print 'PID = ', process.pid
         time.sleep(3.0)
         print "Killing application ..."
@@ -177,7 +177,7 @@ class test_2_server(unittest.TestCase):
         print
         print "Launching application ..."
         os.chdir("..")
-        process = subprocess.Popen(['python', 'start.py', '-v', '-c', 'settings.cfg', 'start'])
+        process = subprocess.Popen(['python', 'app.py', '-v', '-c', 'settings.cfg', 'start'])
         print 'PID = ', process.pid
         time.sleep(3.0)
         print "Killing application ..."

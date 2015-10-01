@@ -41,7 +41,7 @@ from docopt import docopt
 from configparser import ConfigParser
 from flask import Flask, session, redirect, url_for, escape, request
 import logging
-from logging import DEBUG, INFO, WARNING
+# from logging import DEBUG, INFO, WARNING
 from logging.handlers import TimedRotatingFileHandler
 from datetime import timedelta
 from alignak_webui import app, __application__, settings, __version__, __copyright__
@@ -52,14 +52,26 @@ def main():
     args = docopt(__doc__, help=True, options_first=True, version=__version__)
 
     # Set logging options for the application
+    logger = logging.getLogger(__application__)
+    logger.setLevel(logging.WARNING)
+
+    # Create a console handler, add a formatter and set level to DEBUG
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
+    # Set application logger name
+    app.logger_name = __application__
+
+    # Add console handler to logger
+    app.logger.addHandler(ch)
+
     if args['--debug']:
-        app.logger.setLevel(DEBUG)
+        app.logger.setLevel(logging.DEBUG)
         app.debug = True
         app.config['DEBUG'] = True
     elif args['--verbose']:
-        app.logger.setLevel(INFO)
-    else:
-        app.logger.setLevel(WARNING)
+        app.logger.setLevel(logging.INFO)
 
     # Set and read configuration file
     cfg_file = args['--config']
@@ -194,9 +206,9 @@ def main():
         app.logger.info(
             "--------------------------------------------------------------------------------"
         )
-        app.logger.info("Doc: %s", __doc_url__)
-        app.logger.info("Release notes: %s", __releasenotes__)
-        app.logger.info(
+        app.logger.debug("Doc: %s", __doc_url__)
+        app.logger.debug("Release notes: %s", __releasenotes__)
+        app.logger.debug(
             "--------------------------------------------------------------------------------"
         )
 
