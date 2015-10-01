@@ -25,7 +25,8 @@ Main application views and routes
 # import flask
 from flask import Flask, session, redirect, url_for, escape, request, render_template, flash, get_flashed_messages
 import flask_login
-from flask.ext.login import LoginManager, UserMixin, login_required, current_user, login_user, logout_user
+from flask.ext.login import LoginManager, UserMixin, login_required, login_user, logout_user
+from flask.ext.login import current_user
 
 from alignak_webui import app
 from alignak_webui.user import User
@@ -35,18 +36,22 @@ from alignak_webui.user import User
 @app.route('/index')
 def index():
     """ ../.. """
-    return (
-        '''
-            <h1>Hello {1}</h1>
-            <p style="color: #f00;">{0}</p>
-            <p><a href="/logout">Logout</a></p>
-            <p><a href="/login">Login</a></p>
+    result = '''
+            <h1>Hello {0}</h1>
+            <p style="color: #f00;">{1}</p>
         '''.format(
+            # user id
+            current_user.get_id() or 'Anynymous',
             # flash message
-            ', '.join([ str(m) for m in get_flashed_messages() ]),
-            current_user.get_id() or 'Guest'
+            ', '.join([ str(m) for m in get_flashed_messages() ])
         )
-    )
+    if current_user.is_authenticated:
+        result = result + '<a href="/logout">Logout</a>'
+    else:
+        result = result + '<a href="/login">Login</a>'
+
+    return result
+
 
 @app.route("/protected/",methods=["GET"])
 @login_required
@@ -74,25 +79,19 @@ def login():
 
     username = request.form['username']
     password = request.form['password']
-    app.logger.info("request authentication for: %s", username)
-    user = User(username, password)
-    login_user(user)
+    app.logger.info("login request for: %s", username)
+
+    user = User()
+    if (user and user.authenticate(username, password)):
+        login_user(user, remember=True)
+    else:
+        flash('Username or password incorrect')
+        return redirect(url_for('index'))
+
     flash('Logged in successfully.')
     next = request.args.get('next')
 
     return redirect(next or url_for('index'))
-    return render_template('login.html', form=form)
-
-@app.route('/login/check', methods=['post'])
-def login_check():
-    # validate username and password
-    user = User.get(request.form['username'])
-    if (user and user.password == request.form['password']):
-        login_user(user)
-    else:
-        flash('Username or password incorrect')
-
-    return redirect(url_for('index'))
 
 
 @app.route('/logout')

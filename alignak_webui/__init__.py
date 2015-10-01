@@ -24,7 +24,6 @@ Web User Interface for Alignak REST backend
 """
 import flask
 import flask_login
-from alignak_webui.user import User
 
 # Application manifest
 VERSION = (0, 1, 0)
@@ -46,15 +45,23 @@ settings = {
     'PORT': "5000"
 }
 
+# Frontend connection
+frontend = None
+
 # Login manager
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+@login_manager.token_loader
+def load_token(user_id):
+    app.logger.info("Try to find user with token: %s", user_id)
+    return User.get_from_token(user_id)
+
 @login_manager.user_loader
 def load_user(user_id):
-    app.logger.info("User loader: %s", user_id)
-    return User.get(user_id)
+    app.logger.info("Try to find user with token: %s", user_id)
+    return User.get_from_token(user_id)
 
 @login_manager.request_loader
 def load_user(request):
@@ -83,3 +90,4 @@ def get_version():
 # This import must always remain at the end of this file as recommended in:
 # http://flask.pocoo.org/docs/0.10/patterns/packages/
 from alignak_webui import views
+from alignak_webui.user import User

@@ -44,24 +44,29 @@ import logging
 # from logging import DEBUG, INFO, WARNING
 from logging.handlers import TimedRotatingFileHandler
 from datetime import timedelta
-from alignak_webui import app, __application__, settings, __version__, __copyright__
+from alignak_webui import app, frontend
+from alignak_webui import __application__, settings, __version__, __copyright__
 from alignak_webui import __releasenotes__, __license__, __doc_url__
+from alignak_webui import __name__ as __package__
+
+from alignak_webui.backend import FrontEnd
+from alignak_webui.user import User
 
 
 def main():
     args = docopt(__doc__, help=True, options_first=True, version=__version__)
 
+    # Set application logger name
+    app.logger_name = __package__
+
     # Set logging options for the application
-    logger = logging.getLogger(__application__)
+    logger = logging.getLogger(app.logger_name)
     logger.setLevel(logging.WARNING)
 
     # Create a console handler, add a formatter and set level to DEBUG
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
     ch.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-
-    # Set application logger name
-    app.logger_name = __application__
 
     # Add console handler to logger
     app.logger.addHandler(ch)
@@ -220,6 +225,12 @@ def main():
 
         # self.initialize(debug=args['--debug'], verbose=args['--verbose'])
         if args['<command>'] == 'start':
+            # Initialize backend communication ...
+            frontend = FrontEnd(settings.get('ui.backend', 'http://localhost:5000'))
+            app.logger.info("Frontend: %s", frontend.url_endpoint_root)
+
+            User.set_backend(frontend)
+
             app.run(
                 host=app.config['HOST'],
                 port=app.config['PORT'],
