@@ -1,24 +1,86 @@
-{% block body %}
-  <form action="/login" method=post class="form-horizontal">
-    <h2>Signin to FlaskLogin(Todo) Application </h2>
-    <div class="control-group">
-        <div class="controls">
-          <input type="text" id="username" name="username" class="input-xlarge"
-            placeholder="Enter Username" required>
-        </div>
-    </div>
+{# alignak_webui/templates/login.html #}
 
-    <div class="control-group">
-        <div class="controls">
-          <input type="password" id="password" name="password" class="input-xlarge"
-            placeholder="Enter Password" required>
-        </div>
-    </div>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <div class="control-group">
-        <div class="controls">
-          <button type="submit" class="btn btn-success">Signin</button>
+        <title>{{title}}</title>
+
+        <!--
+         This file is a part of {{ manifest.name }}.
+
+         {{ manifest.name }} is a free software.
+         You can redistribute it and/or modify it under the terms of the
+         {{ manifest.license }} license.
+
+         {{ manifest.name }} Version: {{ manifest.version }}, {{ manifest.copyright }}
+        -->
+        <meta name="description" content="{{ manifest.description }}">
+        <meta name="author" content="{{ manifest.author }}">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+
+        {% assets "login_css" %}
+        <link rel="stylesheet" href="{{ ASSET_URL }}"></link>
+        {% endassets %}
+
+        {% assets "login_js" %}
+        <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+        {% endassets %}
+        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+          <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+          <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <![endif]-->
+    </head>
+
+    <body>
+        <div class="container" style="padding-top: 40px;">
+            <div class="col-md-6 col-md-offset-3 col-xs-12">
+                <div class="login-panel panel panel-default">
+                    <div class="panel-heading">
+                        <center><img src="{{ manifest.company_logo }}" alt="Company logo" title="Company logo" style="width: 80%" /></center>
+                        <center><small>{{ manifest.name }}, version {{ manifest.version }}</small></center>
+                        {% if manifest.fmw_name %}
+                        <center><small>{{ manifest.fmw_name }}, version {{ manifest.fmw_version }}</small></center>
+                        {% endif %}
+                    </div>
+                    <div class="row">
+                        <br/>
+                        <div class="well col-xs-6 col-xs-offset-3 col-md-6 col-md-offset-3">
+                            <form id="login" role="form" method="post" action="/login">
+                                <fieldset>
+                                    <div class="form-group">
+                                        <input class="form-control" placeholder="username" name="username" type="text" autofocus="autofocus">
+                                    </div>
+                                    <div class="form-group">
+                                        <input class="form-control" placeholder="Password" name="password" type="password" value="">
+                                    </div>
+
+                                    <button class="btn btn-lg btn-success btn-block" type="submit"><i class="fa fa-sign-in"></i> Login</button>
+                                </fieldset>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="panel-footer">
+                        {% if error %}
+                        <div class="alert alert-danger" role="alert">
+                            <strong>Error: </strong>{{ error }}
+                        </div>
+                        {% endif %}
+                        <div style="min-height: 100px;">
+                            <center><img src="{{ manifest.webui_logo }}" alt="Web UI logo" title="Web UI logo" style="width: 80%" /></center>
+                            {% if manifest.login_text %}
+                            <center><h3>{{ manifest.login_text }}</h3></center>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-  </form>
-{% endblock %}
+        {% include '_footer.html' %}
+    </body>
+</html>

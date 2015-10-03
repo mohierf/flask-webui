@@ -39,25 +39,22 @@ import os
 import sys
 from docopt import docopt
 from configparser import ConfigParser
-from flask import Flask, session, redirect, url_for, escape, request
 import logging
-# from logging import DEBUG, INFO, WARNING
 from logging.handlers import TimedRotatingFileHandler
 from datetime import timedelta
-from alignak_webui import app, frontend
-from alignak_webui import __application__, settings, __version__, __copyright__
-from alignak_webui import __releasenotes__, __license__, __doc_url__
-from alignak_webui import __name__ as __package__
+from alignak_webui import app, frontend, manifest, settings
+from alignak_webui import __name__ as __pkg_name__
 
 from alignak_webui.backend import FrontEnd
 from alignak_webui.user import User
 
 
 def main():
-    args = docopt(__doc__, help=True, options_first=True, version=__version__)
+    print manifest
+    args = docopt(__doc__, help=True, options_first=True, version=manifest['version'])
 
     # Set application logger name
-    app.logger_name = __package__
+    app.logger_name = __pkg_name__
 
     # Set logging options for the application
     logger = logging.getLogger(app.logger_name)
@@ -83,12 +80,12 @@ def main():
     print 'Required configuration file:', cfg_file
     if not os.path.isabs(cfg_file):
         # Searched path
-        cfg_etc = os.path.join(os.path.join('/etc', __application__.lower()), cfg_file)
-        cfg_home = os.path.expanduser('~/' + __application__.lower() + '.cfg')
+        cfg_etc = os.path.join(os.path.join('/etc', manifest['name'].lower()), cfg_file)
+        cfg_home = os.path.expanduser('~/' + manifest['name'].lower() + '.cfg')
         cfg_app = os.path.join(os.path.abspath(os.path.dirname(__file__)), cfg_file)
         # Sub directory ... to be checked after real setup !
         cfg_app = os.path.join(
-            os.path.join(os.path.abspath(os.path.dirname(__file__)), __application__.lower()),
+            os.path.join(os.path.abspath(os.path.dirname(__file__)), manifest['name'].lower()),
             cfg_file
         )
 
@@ -174,7 +171,7 @@ def main():
             settings.get('logs.formatter', '[%(asctime)s] - %(name)s - %(levelname)s - %(message)s')
         ))
         app.logger.addHandler(fh)
-        print "%s logs stored in rotating file: %s" % (__application__, args['--logs'])
+        print "%s logs stored in rotating file: %s" % (manifest['name'].lower(), args['--logs'])
 
     if args['--access'] != 'no access log':
         # Store Werkzeug logs  in a daily file, keeping 6 days along ... as default!
@@ -205,14 +202,14 @@ def main():
         app.logger.info(
             "--------------------------------------------------------------------------------"
         )
-        app.logger.info("%s, version %s", __application__, __version__)
-        app.logger.info("Copyright %s", __copyright__)
-        app.logger.info("License %s", __license__)
+        app.logger.info("%s, version %s", manifest['name'], manifest['version'])
+        app.logger.info("Copyright %s", manifest['copyright'])
+        app.logger.info("License %s", manifest['license'])
         app.logger.info(
             "--------------------------------------------------------------------------------"
         )
-        app.logger.debug("Doc: %s", __doc_url__)
-        app.logger.debug("Release notes: %s", __releasenotes__)
+        app.logger.debug("Doc: %s", manifest['doc'])
+        app.logger.debug("Release notes: %s", manifest['release'])
         app.logger.debug(
             "--------------------------------------------------------------------------------"
         )
@@ -223,12 +220,21 @@ def main():
         app.logger.info("Application settings: %s", settings)
         app.logger.info("Flask settings: %s", app.config)
 
+        # Update application manifest
+        manifest['fmw_name'] = settings['framework.name']
+        manifest['fmw_version'] = settings['framework.version']
+        manifest['webui_logo'] = settings.get('ui.webui_logo', '/static/images/logo_webui.png')
+        manifest['footer_logo'] = settings.get('ui.footer_logo', '/static/images/logo_webui_xxs.png')
+        manifest['company_logo'] = settings.get('ui.company_logo', '/static/images/default_company.png')
+        manifest['login_text'] = settings['ui.welcome_text']
+
         # self.initialize(debug=args['--debug'], verbose=args['--verbose'])
         if args['<command>'] == 'start':
             # Initialize backend communication ...
             frontend = FrontEnd(settings.get('ui.backend', 'http://localhost:5000'))
             app.logger.info("Frontend: %s", frontend.url_endpoint_root)
 
+            # Configure users' management backend
             User.set_backend(frontend)
 
             app.run(

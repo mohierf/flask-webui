@@ -1,0 +1,12 @@
+
+<!-- Footer -->
+<footer class="navbar navbar-default navbar-fixed-bottom">
+    <div class="container-fluid">
+        <img src="{{ manifest.footer_logo }}" alt="Web UI logo" title="Web UI logo" />
+        {% if manifest.fmw_name %}
+        <i class="col-lg-10 text-muted">{{ manifest.fmw_name }}, version {{ manifest.fmw_version }} &mdash; {{ manifest.name }}, version {{ manifest.version }}, {{ manifest.copyright }}</i>
+        {% else %}
+        <i class="col-lg-10 text-muted">{{ manifest.name }}, version {{ manifest.version }}, {{ manifest.copyright }}</i>
+        {% endif %}
+    </div>
+</footer>

@@ -1,0 +1,56 @@
+<ul id = "sidebar-menu" class="sidebar-nav metismenu">
+    <li> <a href="/dashboard"> <i class="fa fa-dashboard"></i> Dashboard </a> </li>
+    <li> <a href="/problems"> <i class="fa fa-ambulance"></i> Problems </a> </li>
+    <li> <a href="#"><i class="fa fa-sitemap"></i> Monitored objects <i class="fa arrow"></i></a>
+        <ul class="nav nav-second-level" aria-expanded="false">
+            <li> <a href="/elements/host"> <i class="fa fa-sitemap"></i> Hosts </a> </li>
+            <li> <a href="/services"> <i class="fa fa-sitemap"></i> Services </a> </li>
+            <li> <a href="/elements/contact"> <i class="fa fa-tags"></i> Contacts</a> </li>
+        </ul>
+    </li>
+    <li> <a href="#"> <i class="fa fa-sitemap"></i> Groups and tags <i class="fa arrow"></i></a>
+        <ul class="nav nav-second-level" aria-expanded="false">
+            <li> <a href="/hosts-groups"> <i class="fa fa-sitemap"></i> Hosts groups </a> </li>
+            <li> <a href="/services-groups"> <i class="fa fa-sitemap"></i> Services groups </a> </li>
+            <li> <a href="/hosts-tags"> <i class="fa fa-tags"></i> Hosts tags </a> </li>
+            <li> <a href="/services-tags"> <i class="fa fa-tags"></i> Services tags </a> </li>
+            <li> <a href="/contacts-groups"> <i class="fa fa-users"></i> Contacts groups </a> </li>
+        </ul>
+    </li>
+    <li> <a href="#"><i class="fa fa-bar-chart"></i> Tactical views <i class="fa arrow"></i></a>
+        <ul class="nav nav-second-level" aria-expanded="false">
+            <li> <a href="/impacts"> <i class="fa fa-bolt"></i> Impacts </a> </li>
+            <li> <a href="/minemap"> <i class="fa fa-table"></i> Minemap </a> </li>
+            <li> <a href="/worldmap"> <i class="fa fa-globe"></i> World map </a> </li>
+            <li> <a href="/wall"> <i class="fa fa-th-large"></i> Wall </a> </li>
+            <li> <a href="/availability"> <i class="fa fa-bar-chart"></i> Availability </a> </li>
+        </ul>
+    </li>
+    {% if current_user.can_action %}
+    <li> <a href="#"><i class="fa fa-gears"></i> System <i class="fa arrow"></i></a>
+        <ul class="nav nav-second-level" aria-expanded="false">
+            <li> <a href="/system"> <i class="fa fa-heartbeat"></i> Status </a> </li>
+            <li> <a href="/logs"> <i class="fa fa-th-list"></i> Logs </a> </li>
+        </ul>
+    </li>
+    <li> <a href="#"><i class="fa fa-wrench"></i> Configuration <i class="fa arrow"></i></a>
+        <ul class="nav nav-second-level" aria-expanded="false">
+            <li> <a href="/parameters"> <i class="fa fa-gears"></i> Parameters </a> </li>
+            <li> <a href="/contacts"> <i class="fa fa-users"></i> Contacts </a> </li>
+            <li> <a href="/commands"> <i class="fa fa-terminal"></i> Commands </a> </li>
+            <li> <a href="/timeperiods"> <i class="fa fa-calendar"></i> Time periods </a> </li>
+        </ul>
+    </li>
+    <!--
+    <li>
+        <hr/>
+    </li>
+    <li> <a href="#"><i class="fa fa-lock"></i> Expert <i class="fa arrow"></i></a>
+        <ul class="nav nav-second-level" aria-expanded="false">
+            <li> <a href="/shutdown"> <i class="fa fa-stop"></i> Shutdown the server </a> </li>
+            <li> <a href="/reload"> <i class="fa fa-refresh"></i> Reload configuration </a> </li>
+        </ul>
+    </li>
+    -->
+    {% endif %}
+</ul>

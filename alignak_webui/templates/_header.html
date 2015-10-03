@@ -1,0 +1,123 @@
+<!-- Header Navbar -->
+<nav class="header navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="logo navbar-brand" data-toggle="modal" data-target="#about_modal">
+            <img src="{{ manifest.company_logo }}" alt="Company logo" title="Company logo" />
+        </a>
+    </div>
+
+    <ul class="nav navbar-nav">
+        <!-- Page filtering ... -->
+        {# include '_filters.html' #}
+    </ul>
+
+    <div id="navbar-collapse" class="navbar-collapse collapse">
+        <!-- Right part ... -->
+        <ul class="nav navbar-nav navbar-right">
+            {% if settings.get('ui.one_eye', 'false') != "false" %}
+            <li>
+                <a data-original-title="One Eye dashboard" href="/dashboard/currently" title="Dashboard currently">
+                    <span id="one_eye" class="fa-stack">
+                        <i class="fa fa-eye"></i>
+                        <i class="fa fa-ban fa-stack-2x text-danger hidden"></i>
+                    </span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if settings.get('ui.refresh', 'false') != "false" %}
+            <li>
+                <a data-original-title="Refreshing page" href="#" action="toggle-page-refresh">
+                    <span id="app_refreshing" class="fa-stack">
+                        <i class="fa fa-refresh"></i>
+                        <i class="fa fa-ban fa-stack-2x text-danger hidden"></i>
+                    </span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if settings.get('ui.play_sound', 'false') != "false" %}
+            <li>
+                <a data-original-title="Sound alerting" href="#" action="toggle-sound-alert">
+                    <span id="sound_alerting" class="fa-stack">
+                        <i class="fa fa-music fa-stack-1x"></i>
+                        <i class="fa fa-ban fa-stack-2x text-danger"></i>
+                    </span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- User info -->
+            <li class="dropdown user user-menu">
+                <a data-original-title='User menu' href="#" class="dropdown-toggle" data-toggle="dropdown">
+                    <i class="fa fa-user"></i>
+                    <span><span class="username hidden-sm hidden-xs hidden-md">{{ current_user.get_name() }}</span> <i class="caret"></i></span>
+                </a>
+
+                <ul class="dropdown-menu">
+                    <li class="user-header">
+                        <div class="panel panel-info" id="user_info">
+                            <div class="panel-body panel-default">
+                                <!-- User image / name -->
+                                <p class="username">{{ current_user.name }}</p>
+                                <p class="usercategory"><small>{{ current_user.role }}</small></p>
+                                <img src="{{ current_user.picture }}" class="img-circle user-logo" title="User picture" alt="Photo: {{ current_user.name }}">
+                            </div>
+                            <div class="panel-footer">
+                                <!-- User actions -->
+                                <div class="btn-group" role="group">
+                                    <a href="{{ manifest.doc }}" target="_blank" class="btn btn-default btn-flat"><i class="fa fa-book"></i> </a>
+                                </div>
+                                <div class="btn-group" role="group">
+                                    <a href="#actions" data-toggle="modal" class="btn btn-default btn-flat disabled"><span class="fa fa-gear"></span> </a>
+                                    <a href="/user/pref" data-toggle="modal" class="btn btn-default btn-flat"><span class="fa fa-pencil"></span> </a>
+                                </div>
+                                <div class="btn-group" role="group">
+                                    <a href="/logout" class="btn btn-default btn-flat"><span class="fa fa-sign-out"></span> </a>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+{% if settings.get('ui.play_sound', 'false') != "false" %}
+<audio id="alert-sound" volume="1.0">
+   <source src="/static/sound/alert.wav" type="audio/wav">
+   Your browser does not support the <code>HTML5 Audio</code> element.
+   <EMBED src="/static/sound/alert.wav" autostart=true loop=false volume=100 >
+</audio>
+
+<script type="text/javascript">
+   // Set alerting sound icon ...
+   if (! sessionStorage.getItem("sound_play")) {
+      // Default is to play ...
+      sessionStorage.setItem("sound_play", {{'1' if settings.get('ui.play_sound') else '0'}});
+   }
+
+   // Toggle sound ...
+   if (sessionStorage.getItem("sound_play") == '1') {
+      $('#sound_alerting i.fa-ban').addClass('hidden');
+   } else {
+      $('#sound_alerting i.fa-ban').removeClass('hidden');
+   }
+   $('[action="toggle-sound-alert"]').on('click', function (e, data) {
+      if (sessionStorage.getItem("sound_play") == '1') {
+         sessionStorage.setItem("sound_play", "0");
+         $('#sound_alerting i.fa-ban').removeClass('hidden');
+      } else {
+         playAlertSound();
+         $('#sound_alerting i.fa-ban').addClass('hidden');
+      }
+   });
+</script>
+{% endif %}

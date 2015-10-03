@@ -1,0 +1,559 @@
+/**
+# Copyright (c) 2015:
+#   Frederic Mohier, frederic.mohier@gmail.com
+#
+# This file is part of (WebUI).
+*
+# (WebUI) is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# (WebUI) is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with (WebUI).  If not, see <http://www.gnu.org/licenses/>.
+*
+**/
+
+
+/*
+ * Base structure
+ */
+
+/*
+ * ---
+ * Backported from shinken-webui.css
+ *
+ */
+html, body {
+    background: #f9f9f9;
+}
+
+/* Move down content because we have a fixed navbar that is 50px tall */
+body {
+  padding-top: 60px;
+}
+
+
+/*
+ * Global add-ons
+ */
+
+.sub-header {
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+/*
+ * Invisible tables
+ */
+.table-invisible > thead > tr > th,
+.table-invisible > tbody > tr > th,
+.table-invisible > tfoot > tr > th,
+.table-invisible > thead > tr > td,
+.table-invisible > tbody > tr > td,
+.table-invisible > tfoot > tr > th {
+    border-top: 0;
+}
+.table-invisible {
+    margin:0;
+}
+
+/*
+ * Popovers
+ */
+.popover {
+   max-width: 640px;
+}
+
+.popover-medium {
+   max-width: 480px;
+}
+
+/*
+ * Table with ellipsis for text too large in columns
+ */
+.table-nowrap {
+   table-layout:fixed;
+}
+
+.table-nowrap td {
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+}
+
+/*
+ * Top navigation
+ * Hide default border to remove 1px line.
+ */
+.navbar-fixed-top {
+   border: 0;
+}
+
+/*
+ * Navigation bar, company logo
+ */
+.header .navbar-brand {
+   padding: 1px;
+}
+.header .navbar-brand img {
+   height: 48px;
+   padding: 1px;
+   margin: 0;
+   cursor: pointer;
+}
+
+.header .navbar-right {
+   margin-right: 4px;
+}
+
+/*
+ * Navigation bar, responsive input field
+ */
+@media (min-width: 768px) {
+    input#search {
+        width: 160px;
+    }
+}
+@media (min-width: 900px) {
+    input#search {
+        width: 260px;
+    }
+}
+@media (min-width: 1300px) {
+    input#search {
+        width: 400px;
+    }
+}
+@media (min-width: 1400px) {
+    input#search {
+        width: 500px;
+    }
+}
+@media (min-width: 1500px) {
+    input#search {
+        width: 600px;
+    }
+}
+
+/*
+ * Navigation bar, user menu
+ */
+.user-menu > .dropdown-menu {
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+  padding: 1px 0 0 0;
+  border-top-width: 0;
+  width: 280px;
+}
+.user-menu > .dropdown-menu:after {
+  bottom: 100%;
+  right: 10px;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-color: rgba(255, 255, 255, 0);
+  border-bottom-color: #ffffff;
+  border-width: 10px;
+  margin-left: -10px;
+}
+.user-menu > .dropdown-menu > li.user-header {
+  height: auto;
+  padding: 10px;
+  background: #eeeeee;
+  text-align: center;
+}
+
+
+/*!
+ * Start Bootstrap - Simple Sidebar HTML Template (http://startbootstrap.com)
+ * Code licensed under the Apache License v2.0.
+ * For details, see http://www.apache.org/licenses/LICENSE-2.0.
+ */
+
+/* Toggle Styles */
+
+#wrapper {
+    padding-left: 0;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+
+#wrapper.toggled {
+    padding-left: 200px;
+}
+
+#sidebar-wrapper {
+   z-index: 1000;
+   position: fixed;
+   left: 200px;
+   width: 0;
+   height: 100%;
+   margin-left: -200px;
+   overflow-y: auto;
+   /*background: #000;*/
+
+   border-right-color: rgb(231, 231, 231);
+   border-top-right-radius: 0px;
+   border-bottom-right-radius: 0px;
+   border-right-style: solid;
+   border-right-width: 2px;
+   border-collapse: separate;
+
+   background-color: rgb(248, 248, 248);
+   background-image: linear-gradient(rgb(248, 248, 248) 0px, rgb(255, 255, 255) 100%);
+
+   -webkit-transition: all 0.5s ease;
+   -moz-transition: all 0.5s ease;
+   -o-transition: all 0.5s ease;
+   transition: all 0.5s ease;
+}
+
+#wrapper.toggled #sidebar-wrapper {
+    width: 200px;
+}
+
+#page-content-wrapper {
+    width: 100%;
+    position: absolute;
+    padding: 15px;
+}
+
+#wrapper.toggled #page-content-wrapper {
+    position: absolute;
+    margin-right: -200px;
+}
+
+/* Sidebar Styles */
+
+.sidebar-nav {
+    position: absolute;
+    top: 0;
+    width: 200px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sidebar-nav li {
+    text-indent: 10px;
+    line-height: 40px;
+}
+
+.sidebar-nav li ul li {
+    text-indent: 10px;
+    line-height: 20px;
+}
+
+.sidebar-nav li a {
+    display: block;
+    text-decoration: none;
+    color: #999999;
+}
+
+.sidebar-nav li a i.arrow {
+    margin-right: 10px;
+}
+
+.sidebar-nav li a:hover {
+    text-decoration: none;
+    color: #999;
+    background: rgba(255,255,255,0.2);
+}
+
+.sidebar-nav li a:active,
+.sidebar-nav li a:focus {
+    text-decoration: none;
+}
+
+.sidebar-nav > .sidebar-brand {
+    height: 65px;
+    font-size: 18px;
+    line-height: 60px;
+}
+
+.sidebar-nav > .sidebar-brand a {
+    color: #999999;
+}
+
+.sidebar-nav > .sidebar-brand a:hover {
+    color: #999;
+    background: none;
+}
+
+@media(min-width:768px) {
+    #wrapper {
+        padding-left: 200px;
+    }
+
+    #wrapper.toggled {
+        padding-left: 0;
+    }
+
+    #sidebar-wrapper {
+        width: 200px;
+    }
+
+    #wrapper.toggled #sidebar-wrapper {
+        width: 0;
+    }
+
+    #page-content-wrapper {
+        padding: 20px;
+        position: relative;
+    }
+
+    #wrapper.toggled #page-content-wrapper {
+        position: relative;
+        margin-right: 0;
+    }
+}
+
+/*
+ * Side bar menu - width 200px
+ */
+@media(min-width:768px) {
+   #page-wrapper {
+      margin: 0 0 0 200px;
+   }
+   #page-wrapper.fullscreen {
+      margin: 0 0 0 0;
+   }
+}
+@media(min-width:768px) {
+    .sidebar {
+        width: 200px;
+    }
+}
+
+@media(max-height:600px) {
+    .sidebar li  a {
+        height: 30px;
+    }
+}
+
+/*
+ * Actions bar
+ */
+.actionbar .actionbar-nav.navbar-collapse {
+   padding-right: 0;
+   padding-left: 0;
+}
+
+.actionbar ul li {
+   border-bottom: 1px solid #e7e7e7;
+}
+
+.actionbar ul li a.active {
+   background-color: #eee;
+}
+
+.actionbar .arrow {
+   float: right;
+}
+
+.actionbar .fa.arrow:before {
+   content: "\f104";
+}
+
+.actionbar .active>a>.fa.arrow:before {
+   content: "\f107";
+}
+
+.actionbar .nav-second-level li,
+.actionbar .nav-third-level li {
+   border-bottom: 0!important;
+}
+
+.actionbar .nav-second-level li a {
+   padding-left: 37px;
+}
+
+.actionbar .nav-third-level li a {
+   padding-left: 52px;
+}
+
+@media(min-width:768px) {
+   .actionbar {
+      z-index: 1;
+      position: absolute;
+      width: 200px;
+      margin-bottom: 15px;
+      bottom: 15px;
+   }
+}
+
+
+/*
+ * Footer
+ */
+footer.navbar {
+  height: 26px;
+  min-height: 26px !important;
+  margin-bottom: 0;
+}
+footer img {
+  float: left;
+  padding: 2px;
+  display: block;
+}
+
+/*
+ * Breadcrumb
+ */
+.breadcrumb {
+  background: none;
+}
+
+/*
+ * Main content
+ */
+
+.main {
+  padding: 20px;
+}
+@media (min-width: 768px) {
+  .main {
+    padding-right: 40px;
+    padding-left: 40px;
+  }
+}
+.main .page-header {
+  margin-top: 0;
+}
+
+
+/*
+ * Placeholder dashboard ideas
+ */
+
+.placeholders {
+  margin-bottom: 30px;
+  text-align: center;
+}
+.placeholders h4 {
+  margin-bottom: 0;
+}
+.placeholder {
+  margin-bottom: 20px;
+}
+.placeholder img {
+  display: inline-block;
+  border-radius: 50%;
+}
+
+/*
+ * Shinken basics
+ */
+
+.font-ok, .font-up {
+  color: #5bb75b !important;
+}
+
+.font-warning, .font-unreachable {
+  color: #faa732 !important;
+}
+
+.font-critical, .font-down {
+  color: #da4f49 !important;
+}
+
+.font-unknown, .font-pending {
+  color: #49afcd !important;
+}
+
+.font-ack, .font-downtime {
+  color: #777 !important;
+}
+
+.font-greyed {
+  color: #ccc !important;
+}
+
+
+.background-ok, .background-up {
+  background-color: #5bb75b !important;
+}
+
+.background-warning, .background-unreachable {
+  background-color: #faa732 !important;
+}
+
+.background-critical, .background-down {
+  background-color: #da4f49 !important;
+}
+
+.background-unknown, .background-pending {
+  background-color: #49afcd !important;
+}
+
+.background-ack, .background-downtime {
+  background-color: #777 !important;
+}
+
+.background-greyed {
+  background-color: #ccc !important;
+}
+
+
+/*
+ * Special font styles (Font Color)
+ */
+.font-white {color: #FFFFFF;}
+
+.font-black {color: #000000;}
+
+.font-green {color: #468847;}
+
+.font-yellow {color: #FFEE00;}
+
+.font-orange {color: #F89406;}
+
+.font-red {color: #DA4F49;}
+
+.font-green {color: #51A351;}
+
+.font-grey {color: #505050;}
+
+.font-lightgrey {color: #EBEBEB;}
+
+.font-darkgrey {color: #535456;}
+
+.font-blue {color: #3A87AD;}
+
+
+/*
+ * Special background colors
+ */
+.bg-white {background-color: #FFFFFF;}
+
+.bg-black {background-color: #000000;}
+
+.bg-green {background-color: #468847;}
+
+.bg-yellow {background-color: #FFEE00;}
+
+.bg-orange {background-color: #F89406;}
+
+.bg-red {background-color: #DA4F49;}
+
+.bg-green {background-color: #51A351;}
+
+.bg-grey {background-color: #505050;}
+
+.bg-lightgrey {background-color: #EBEBEB;}
+
+.bg-darkgrey {background-color: #535456;}
+
+.bg-blue {background-color: #3A87AD;}

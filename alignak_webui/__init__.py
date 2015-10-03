@@ -20,20 +20,35 @@
 # along with (WebUI).  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Web User Interface for Alignak REST backend
+    Web User Interface for Alignak REST backend
 """
+import re
 import flask
-import flask_login
 
 # Application manifest
 VERSION = (0, 1, 0)
 
 __application__ = u"Alignak_Webui"
 __version__ = '.'.join((str(each) for each in VERSION[:4]))
-__copyright__ = u"(c) 2015 - Frédéric MOHIER"
-__license__ = u"GNU AGPL version 3"
+__author__ = u"Frédéric MOHIER"
+__copyright__ = u"(c) 2015 - %s" % __author__
+__license__ = u"GNU Affero General Public License, version 3"
+__description__ = u"Web User Interface for Alignak backend"
 __releasenotes__ = u"""Bootstrap 3 User Interface for Alignak backend"""
 __doc_url__ = u"https://github.com/Alignak-monitoring-contrib/alignak-webui/wiki"
+# Application manifest
+manifest = {
+    'name': __application__,
+    'version': __version__,
+    'author': __author__,
+    'description': __description__,
+    'copyright': __copyright__,
+    'license': __license__,
+    'release': __releasenotes__,
+    'doc': __doc_url__,
+    'fmw_name': 'Alignak',
+    'fmw_version': 'x.y.z'
+}
 
 # Main Flask application
 app = flask.Flask(__name__.split('.')[0])
@@ -48,37 +63,6 @@ settings = {
 # Frontend connection
 frontend = None
 
-# Login manager
-login_manager = flask_login.LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-
-@login_manager.token_loader
-def load_token(user_id):
-    app.logger.info("Try to find user with token: %s", user_id)
-    return User.get_from_token(user_id)
-
-@login_manager.user_loader
-def load_user(user_id):
-    app.logger.info("Try to find user with token: %s", user_id)
-    return User.get_from_token(user_id)
-
-@login_manager.request_loader
-def load_user(request):
-    app.logger.info("load_user")
-    token = request.headers.get('Authorization')
-    if token is None:
-        token = request.args.get('token')
-
-    if token is not None:
-        username,password = token.split(":") # naive token
-        user_entry = User.get(username)
-        if (user_entry is not None):
-            user = User(user_entry[0],user_entry[1])
-            if (user.password == password):
-                return user
-    return None
-
 
 # setup.py imports this module to gather package version
 def get_version():
@@ -89,5 +73,8 @@ def get_version():
 
 # This import must always remain at the end of this file as recommended in:
 # http://flask.pocoo.org/docs/0.10/patterns/packages/
-from alignak_webui import views
 from alignak_webui.user import User
+from alignak_webui.utils import assets
+from alignak_webui.utils import helper
+from alignak_webui import login
+from alignak_webui import views

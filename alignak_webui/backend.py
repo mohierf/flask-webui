@@ -122,6 +122,19 @@ class FrontEnd(object):
 
         return self.token
 
+    def logout(self):
+        """
+        Logout user from backend
+
+        :return: True
+        :rtype: boolean
+        """
+        self.connected = False
+        self.authenticated = False
+        self.token = None
+
+        return self.backend.logout()
+
     def connect(self, username=None, password=None, token=None):
         """
         If backend connection is available:
