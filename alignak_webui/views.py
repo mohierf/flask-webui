@@ -54,17 +54,13 @@ def index():
     )
 
 
-# @app.before_request
-# def before_request():
-    # g.user = current_user
-
-
 # Shutdown Web server ...
 def shutdown_server():
     """ ../.. """
     func = request.environ.get('werkzeug.server.shutdown')
     if func is None:
         raise RuntimeError('Not running with the Werkzeug Server')
+    # pragma: no cover - impossible to reach with unit testing ...
     func()
 
 

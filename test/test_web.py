@@ -89,37 +89,44 @@ class basic_tests(unittest.TestCase):
     def logout(self):
         return self.app.get('/logout', follow_redirects=True)
 
-    # def test_1_bad_secret(self):
-        # print ''
-        # print 'test secret key not set'
-
-        # with assert_raises(RuntimeError) as cm:
-            # rv = self.login('foo', 'foo')
-        # ex = cm.exception
-        # print 'exception:', str(ex)
-        # assert 'the session is unavailable because no secret key was set.  Set the secret_key on the application to something unique and secret.' in str(ex)
-
-        # if 'SECRET_KEY' not in alignak_webui.app.config or not alignak_webui.app.config['SECRET_KEY']:
-            # alignak_webui.app.config['SECRET_KEY'] = os.urandom(24)
-
     def test_2_login(self):
         print ''
         print 'test login/logout process'
 
+        print 'get login page'
         rv = self.app.get('/login')
         assert '<form id="login"' in rv.data
 
+        print 'login refused - credentials'
         rv = self.login('admin', 'default')
         assert 'Invalid credentials: username is unknown or password is invalid.' in rv.data
 
+        print 'login refused - credentials'
         rv = self.login('admin', '')
         assert 'Invalid credentials: username is unknown or password is invalid.' in rv.data
 
+        print 'login accepted - home page'
         rv = self.login('admin', 'admin')
         assert '<title>Home page</title>' in rv.data
 
+        print 'refresh home page'
+        rv = self.app.get('/')
+        assert '<title>Home page</title>' in rv.data
+
+        print 'logout - go to login page'
         rv = self.logout()
         assert '<form id="login"' in rv.data
+
+    def test_3_shutdown(self):
+        print ''
+        print 'test server shutdown'
+
+        with assert_raises(RuntimeError) as cm:
+            rv = self.app.post('/shutdown')
+            print rv.data
+        ex = cm.exception # raised exception is available through exception property of context
+        print 'exception:', str(ex)
+        assert 'Not running with the Werkzeug Server' in str(ex)
 
 
 if __name__ == '__main__':

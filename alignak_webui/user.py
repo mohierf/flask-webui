@@ -67,7 +67,7 @@ class User(UserMixin):
         log.debug("users' authentication backend defined: %s", backend.url_endpoint_root)
 
     @classmethod
-    def get_from_username(cls, username):
+    def get_from_username(cls, username):  # pragma: no cover - impossible in unit testing
         """
             Return user instance for the provided username
 
@@ -86,7 +86,7 @@ class User(UserMixin):
         return None
 
     @classmethod
-    def get_from_token(cls, token):
+    def get_from_token(cls, token):  # pragma: no cover - impossible in unit testing
         """
             Return user instance for the provided token
 
@@ -147,9 +147,13 @@ class User(UserMixin):
                 elif 'alias' in self.contact and self.contact["alias"]:
                     self.name = self.contact["alias"]
 
-                self.role = 'unknown'
+                self.role = 'user'
                 if 'role' in self.contact and self.contact["role"]:
                     self.role = app.config.get('users.role_' + self.contact["role"], self.role)
+                elif self.contact["back_role_super_admin"]:
+                    self.role = 'super_admin'
+                elif self.contact["back_role_admin"]:
+                    self.role = 'admin'
 
                 self.picture = "/static/images/default_user.png"
                 if 'picture' in self.contact and self.contact["picture"]:
@@ -157,7 +161,7 @@ class User(UserMixin):
 
                 log.debug("User is initialized from backend contact, username: %s", self.username)
                 return True
-        except Exception as e:
+        except Exception as e:  # pragma: no cover - should never happen
             log.error("Backend raised an exception: %s.", str(e))
 
         return False

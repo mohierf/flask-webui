@@ -36,10 +36,11 @@ login_manager.login_view = 'login'
 
 
 @login_manager.token_loader
-def token_loader(token):
+def token_loader(token):  # pragma: no cover - very difficult with unit testing ...
     """
     Called when user login check is required
     """
+    # pragma: no cover - very difficult with unit testing ...
     app.logger.info("token_loader - Try to find user with token: %s", token)
     return User.get_from_token(token)
 
@@ -63,7 +64,7 @@ def request_loader(req):
     if token is None:
         token = req.args.get('token')
 
-    if token is not None:
+    if token is not None:  # pragma: no cover - very difficult with unit testing ...
         app.logger.debug("load_user - found user token in request")
         return User.get_from_token(token)
     return None
@@ -88,7 +89,7 @@ def login():
             if login_user(user, remember=True):
                 flash(u"You were successfully logged in.", 'info')
                 return redirect(request.args.get('next') or url_for('index'))
-            else:
+            else:  # pragma: no cover - should never happen ...
                 error = u"User login failed."
         else:
             error = u"Invalid credentials: username is unknown or password is invalid."

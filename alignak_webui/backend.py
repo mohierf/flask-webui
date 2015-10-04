@@ -115,10 +115,6 @@ class FrontEnd(object):
             self.connected = False
             self.authenticated = self.connected
             raise e
-        except Exception as e:
-            log.error("frontend connection, error: %s", str(e))
-            log.debug("exception type: %s", type(e))
-            log.debug("Back trace of this kill: %s", traceback.format_exc())
 
         return self.token
 
@@ -160,18 +156,8 @@ class FrontEnd(object):
                 self.token = token
                 self.authenticated = True
             else:
-                if username and password and not self.authenticated:
-                    log.info(
-                        "request backend user authentication, username: %s / token: %s",
-                        username, token
-                    )
-                    self.authenticated = self.backend.login(username=username, password=password)
-                    if self.authenticated:
-                        self.token = self.backend.token
-
-                        log.info("backend user authenticated: %s", username)
-                    else:
-                        return self.connected
+                if not self.login(username, password):
+                    return self.connected
 
             # Connect the backend
             self.backend_available_objets = self.backend.get_domains()
@@ -226,7 +212,7 @@ class FrontEnd(object):
             self.connected = False
             self.authenticated = self.connected
             raise e
-        except Exception as e:
+        except Exception as e:  # pragma: no cover - simple protection if ever happened ...
             log.error("frontend connection, error: %s", str(e))
             log.debug("exception type: %s", type(e))
             log.debug("Back trace of this kill: %s", traceback.format_exc())
@@ -405,10 +391,7 @@ class FrontEnd(object):
         :rtype: dict
         """
         try:
-            response = None
-
-            log.info("get_user_preferences, type: %s, for: %s",
-                     prefs_type, user)
+            log.debug("get_user_preferences, type: %s, for: %s", prefs_type, user)
 
             # Still existing ...
             items = self.backend.get_all(
@@ -422,7 +405,7 @@ class FrontEnd(object):
         except Exception as e:  # pragma: no cover - need specific backend tests
             log.error("get_user_preferences, exception: %s", str(e))
 
-        return response
+        return None  # pragma: no cover - need specific backend tests
 
     def get_ui_data_model(self, element_type):
         """ Get the data model for an element type
@@ -638,6 +621,18 @@ class FrontEnd(object):
 
         return items
 
+    def get_livesynthesis(self):
+        """ Get livestate synthesis for hosts and services
+
+            :return: hosts and services live state synthesis
+            :rtype: dict
+        """
+        synthesis = {
+            'hosts_synthesis': self.get_hosts_synthesis(),
+            'services_synthesis': self.get_services_synthesis()
+        }
+        return synthesis
+
     def get_hosts_synthesis(self):
         """
         @ddurieux: this computation should be made by the backend each time an update occurs!
@@ -649,21 +644,22 @@ class FrontEnd(object):
             'bi': 3, 'pct_unknown': 0.0, 'nb_ack': 0, 'nb_elts': 12, 'nb_up': 8,
             'nb_pending': 0, 'pct_ack': 0.0, 'pct_pending': 0.0, 'pct_downtime': 0.0,
             'pct_unreachable': 0.0}
+
+        Returns none if no hosts are available
+
         :return: hosts live state synthesis
         :rtype: dict
         """
         parameters = {}
         parameters["embedded"] = '{"host_name":1}'
         hosts = self.get_livestate_hosts(parameters=parameters)
+        if not hosts:
+            return None
 
         h = dict()
-        # h['elts'] = hosts
         h['nb_elts'] = len(hosts)
-        if hosts:
-            h['bi'] = max(int(i['host_name']['business_impact'])
-                          for i in hosts if 'business_impact' in i['host_name'])
-        else:
-            h['bi'] = 0
+        h['bi'] = max(int(i['host_name']['business_impact'])
+                      for i in hosts if 'business_impact' in i['host_name'])
         for state in 'up', 'down', 'unreachable', 'pending':
             h[state] = [i for i in hosts if i['state'] == state.upper()]
         h['unknown'] = [i for i in hosts if i['state'].lower()
@@ -684,7 +680,7 @@ class FrontEnd(object):
             h['pct_problems'] = round(100.0 * h['nb_problems'] / h['nb_elts'], 2)
 
         log.info("get_hosts_synthesis: %s, %s", type(h), h)
-        return {'hosts_synthesis': h}
+        return h
 
     def get_services_synthesis(self):
         """
@@ -697,21 +693,22 @@ class FrontEnd(object):
             'bi': 3, 'pct_unknown': 0.0, 'nb_ack': 0, 'nb_elts': 12, 'nb_ok': 8,
             'nb_pending': 0, 'pct_ack': 0.0, 'pct_pending': 0.0, 'pct_downtime': 0.0,
             'pct_warning': 0.0}
+
+        Returns none if no services are available
+
         :return: services live state synthesis
         :rtype: dict
         """
         parameters = {}
         parameters["embedded"] = '{"service_description":1}'
         services = self.get_livestate_services(parameters=parameters)
+        if not services:
+            return None
 
         s = dict()
-        # s['elts'] = services
         s['nb_elts'] = len(services)
-        if services:
-            s['bi'] = max(int(i['service_description']['business_impact'])
-                          for i in services if 'business_impact' in i['service_description'])
-        else:
-            s['bi'] = 0
+        s['bi'] = max(int(i['service_description']['business_impact'])
+                      for i in services if 'business_impact' in i['service_description'])
         for state in 'ok', 'critical', 'warning', 'pending':
             s[state] = [i for i in services if i['state'] == state.upper()]
         s['unknown'] = [i for i in services if i['state'].lower()
@@ -732,4 +729,4 @@ class FrontEnd(object):
             s['pct_problems'] = round(100.0 * s['nb_problems'] / s['nb_elts'], 2)
 
         log.info("get_services_synthesis: %s", s)
-        return {'services_synthesis': s}
+        return s

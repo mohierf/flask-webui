@@ -57,74 +57,73 @@ class Settings(object):
             )
 
             # In /etc/alignak_webui ...
-            if os.path.isfile(cfg_etc):
+            if os.path.isfile(cfg_etc):  # pragma: no cover - not with unit testing ...
                 cfg_file = cfg_etc
             # In current directory ...
             elif os.path.isfile(cfg_app):
                 cfg_file = cfg_app
             # In user home directory ...
-            elif os.path.isfile(cfg_home):
+            elif os.path.isfile(cfg_home):  # pragma: no cover - not with unit testing ...
                 cfg_file = cfg_home
 
-        if not os.path.isfile(cfg_file):
-            print "Required configuration file not found: %s or %s or %s" % (
-                cfg_etc, cfg_home, cfg_app
-            )
+            if not os.path.isfile(cfg_file):  # pragma: no cover - not with unit testing ...
+                print "Required configuration file not found: %s or %s or %s" % (
+                    cfg_etc, cfg_home, cfg_app
+                )
+                return None
+
+        if not os.path.isfile(cfg_file):  # pragma: no cover - not with unit testing ...
+            print "Required configuration file not found: %s" % cfg_file
             return None
 
-        cfg_file = os.path.abspath(cfg_file)
-
-        config = ConfigParser(defaults=default)
-        found_cfg_files = config.read([cfg_file])
-        if found_cfg_files:
-            # Build Flask configuration parameters
-            if config.has_section('flask'):
-                for key, value in config.items('flask'):
-                    if key.upper() in app.config:
-                        app_default = app.config[key.upper()]
-                        if isinstance(app_default, timedelta):
-                            app.config[key.upper()] = timedelta(value)
-                        elif isinstance(app_default, bool):
-                            app.config[key.upper()] = True if value in [
-                                'true', 'True', 'on', 'On', 'y', 'yes', '1'
-                            ] else False
-                        elif isinstance(app_default, float):
-                            app.config[key.upper()] = float(value)
-                        elif isinstance(app_default, int):
-                            app.config[key.upper()] = int(value)
+        try:
+            config = ConfigParser(defaults=default)
+            found_cfg_files = config.read([cfg_file])
+            if found_cfg_files:
+                # Build Flask configuration parameters
+                if config.has_section('flask'):
+                    for key, value in config.items('flask'):
+                        if key.upper() in app.config:
+                            app_default = app.config[key.upper()]
+                            if isinstance(app_default, timedelta):  # pragma: no cover
+                                app.config[key.upper()] = timedelta(value)
+                            elif isinstance(app_default, bool):
+                                app.config[key.upper()] = True if value in [
+                                    'true', 'True', 'on', 'On', 'y', 'yes', '1'
+                                ] else False
+                            elif isinstance(app_default, float):  # pragma: no cover
+                                app.config[key.upper()] = float(value)
+                            elif isinstance(app_default, int):
+                                app.config[key.upper()] = int(value)
+                            else:
+                                # All the string keys need to be coerced into str()
+                                # because Flask expects some of them not to be unicode
+                                app.config[key.upper()] = str(value)
                         else:
-                            # All the string keys need to be coerced into str()
-                            # because Flask expects some of them not to be unicode
-                            app.config[key.upper()] = str(value)
-                    else:
-                        if value.isdigit():
-                            app.config[key.upper()] = int(value)
-                        else:
-                            app.config[key.upper()] = str(value)
-            else:
-                app.config['HOST'] = '127.0.0.1'
-                app.config['PORT'] = 80
-                app.config['DEBUG'] = False
+                            if value.isdigit():
+                                app.config[key.upper()] = int(value)
+                            else:
+                                app.config[key.upper()] = str(value)
+                else:
+                    app.config['HOST'] = '127.0.0.1'
+                    app.config['PORT'] = 80
+                    app.config['DEBUG'] = False
 
-            # Build a secret key if none defined ...
-            if 'SECRET_KEY' not in app.config or not app.config['SECRET_KEY']:
-                app.config['SECRET_KEY'] = os.urandom(24)
+                # Build a secret key if none defined ...
+                if 'SECRET_KEY' not in app.config or not app.config['SECRET_KEY']:
+                    app.config['SECRET_KEY'] = os.urandom(24)
 
-            # Build settings dictionnary for application parameters
-            for section in config.sections():
-                for option in config.options(section):
-                    try:
-                        settings[section + '.' + option] = config.get(section, option)
-                        app.config[section + '.' + option] = config.get(section, option)
-                        if settings[section + '.' + option] == -1:
-                            print "skip: %s" % section + '.' + option
-                    except Exception:
-                        settings[section + '.' + option] = None
-                        app.config[section + '.' + option] = None
-
-        else:
-            app.logger.warning("No configuration file found.")
-            print "Required configuration file does not exist: %s" % cfg_file
+                # Build settings dictionnary for application parameters
+                for section in config.sections():
+                    for option in config.options(section):
+                        try:
+                            settings[section + '.' + option] = config.get(section, option)
+                            app.config[section + '.' + option] = config.get(section, option)
+                        except Exception:  # pragma: no cover - should never happen ...
+                            settings[section + '.' + option] = None
+                            app.config[section + '.' + option] = None
+        except Exception:
+            app.logger.warning("Bad formed configuration file.")
             return None
 
         return cfg_file
