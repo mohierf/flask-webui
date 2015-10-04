@@ -192,7 +192,7 @@ class FrontEnd(object):
                 self.dm_base = resp['base']
                 self.dm_domains = {}
                 for domain_name in resp['domains']:
-                    fields = resp['domains'][domain_name]["/"+domain_name]['POST']['params']
+                    fields = resp['domains'][domain_name]["/" + domain_name]['POST']['params']
                     self.dm_domains.update({
                         domain_name: fields
                     })

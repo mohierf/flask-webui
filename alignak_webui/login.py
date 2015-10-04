@@ -24,8 +24,8 @@ User login / management
 """
 from flask import redirect, url_for, request, render_template, flash
 
-from flask.ext.login import LoginManager, UserMixin, login_required, login_user, logout_user
-from flask.ext.login import current_user
+from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user
+from flask_login import current_user
 from alignak_webui import app, manifest
 from alignak_webui.user import User
 
@@ -36,25 +36,32 @@ login_manager.login_view = 'login'
 
 
 @login_manager.token_loader
-def load_token(token):
-    app.logger.info("load_token - Try to find user with token: %s", token)
+def token_loader(token):
+    """
+    Called when user login check is required
+    """
+    app.logger.info("token_loader - Try to find user with token: %s", token)
     return User.get_from_token(token)
 
 
 @login_manager.user_loader
-def load_user(user_id):
-    app.logger.info("load_user - Try to find user with token: %s", user_id)
-    user = User.get_from_username(user_id)
-    app.logger.info("user: %s / %s", type(user), user)
-    return user
+def user_loader(user_id):
+    """
+    Called when user login check is required
+    """
+    app.logger.info("user_loader - Try to find user with token: %s", user_id)
+    return User.get_from_username(user_id)
 
 
 @login_manager.request_loader
-def load_user(request):
-    app.logger.debug("load_user - Try to find user from request")
-    token = request.headers.get('Authorization')
+def request_loader(req):
+    """
+    Called when user login check is required
+    """
+    app.logger.debug("request_loader - Try to find user from request")
+    token = req.headers.get('Authorization')
     if token is None:
-        token = request.args.get('token')
+        token = req.args.get('token')
 
     if token is not None:
         app.logger.debug("load_user - found user token in request")
@@ -62,19 +69,14 @@ def load_user(request):
     return None
 
 
-@app.route('/register' , methods=['GET','POST'])
-def register():
-    if request.method == 'GET':
-        return render_template('register.html')
-    user = User(request.form['username'], request.form['password'], request.form['email'])
-    # db.session.add(user)
-    # db.session.commit()
-    flash(u"User successfully registered")
-    return redirect(url_for('login'))
-
-
-@app.route('/login',methods=['GET','POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    """
+    User login ...
+
+    If GET request, display login form
+    If POST request, authenticates user and redirects to index page
+    """
     error = None
     if request.method == 'POST':
         username = request.form['username']
@@ -82,11 +84,10 @@ def login():
         app.logger.info("login request for: %s", username)
 
         user = User()
-        if (user and user.authenticate(username, password)):
-            if (login_user(user, remember=True)):
+        if user and user.authenticate(username, password):
+            if login_user(user, remember=True):
                 flash(u"You were successfully logged in.", 'info')
-                next = request.args.get('next')
-                return redirect(next or url_for('index'))
+                return redirect(request.args.get('next') or url_for('index'))
             else:
                 error = u"User login failed."
         else:
@@ -103,5 +104,8 @@ def login():
 
 @app.route('/logout')
 def logout():
+    """
+    User logout ... simply logout current user and redirects to index page
+    """
     logout_user()
     return redirect(url_for('index'))

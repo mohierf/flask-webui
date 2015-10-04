@@ -22,7 +22,7 @@
 """
 Web Interface assets
 """
-from flask.ext.assets import Bundle, Environment
+from flask_assets import Bundle, Environment
 from alignak_webui import app
 
 bundles = {

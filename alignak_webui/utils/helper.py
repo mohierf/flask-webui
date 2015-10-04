@@ -33,7 +33,7 @@ import re
 
 import json
 from logging import getLogger
-from alignak_webui import app
+from alignak_webui import app, frontend
 
 logger = getLogger(__name__)
 
@@ -57,9 +57,9 @@ class Helper(object):
         'FLAPPING', 'ACK', 'DOWNTIME'
     ]
 
-    def __init__(self, app):
+    def __init__(self, application):
         """To be checked"""
-        self.app = app
+        self.app = application
 
     @staticmethod
     def print_date(t, fmt='%Y-%m-%d %H:%M:%S'):
@@ -192,12 +192,12 @@ class Helper(object):
             return 'n/a'
 
         # Icon
-        res_icon = self.app.config.get(
+        res_icon = app.config.get(
             "ui.bi_icon", '<i class="fa fa-star text-primary"></i>'
-            ) * max(0, business_impact - 2)
+        ) * max(0, business_impact - 2)
 
         # Text
-        res_text = self.app.config.get("ui.bi_%d" % business_impact, 'unknown')
+        res_text = app.config.get("ui.bi_%d" % business_impact, 'unknown')
 
         result = ""
         if text and icon:
@@ -278,18 +278,11 @@ class Helper(object):
         if obj_type not in ['host', 'service']:
             return 'n/a'
 
-        if (
-                obj_type == 'host' and
-                state.upper() not in Helper.host_states
-            ) or (
-                obj_type == 'host' and
-                extra and extra.upper() not in Helper.extra_host_states):
+        if (obj_type == 'host' and state.upper() not in Helper.host_states) or (
+                obj_type == 'host' and extra and extra.upper() not in Helper.extra_host_states):
             return 'n/a'
 
-        if (
-                obj_type == 'service' and
-                state.upper() not in Helper.service_states
-            ) or (
+        if (obj_type == 'service' and state.upper() not in Helper.service_states) or (
                 obj_type == 'service' and
                 extra and extra.upper() not in Helper.extra_service_states):
             return 'n/a'
@@ -298,39 +291,39 @@ class Helper(object):
             return 'n/a'
 
         # Text
-        res_icon_text = self.app.config.get(
+        res_icon_text = app.config.get(
             "ui.%s_text_%s" % (obj_type, state.lower()),
             'unknown'
-            )
+        )
         res_text = res_icon_text
 
         if extra:
-            res_extra = self.app.config.get(
+            res_extra = app.config.get(
                 "ui.%s_text_%s" % (obj_type, extra.lower()),
                 ''
-                )
+            )
             res_text = "%s %s" % (res_text, res_extra)
 
         if text and not icon:
             return res_text
 
         # Icon
-        res_icon_global = self.app.config.get(
+        res_icon_global = app.config.get(
             "ui.host_state_content",
             '<span class="fa-stack" ##style## title="##title##">##back####front##</span>'
-            )
-        res_icon_back = self.app.config.get(
+        )
+        res_icon_back = app.config.get(
             "ui.host_state_back",
             '<i class="fa fa-circle fa-stack-2x font-##state##"></i>'
-            )
-        res_icon_front = self.app.config.get(
+        )
+        res_icon_front = app.config.get(
             "ui.host_state_front",
             '<i class="fa fa-##state## fa-stack-1x ##extra##"></i>'
-            )
-        res_icon_state = self.app.config.get(
+        )
+        res_icon_state = app.config.get(
             "ui.%s_icon_%s" % (obj_type, state.lower()),
             'question'
-            )
+        )
         res_extra = "fa-inverse"
         if extra and extra == 'FLAPPING':
             res_extra = "font-%s" % state.lower()
@@ -344,7 +337,7 @@ class Helper(object):
         res_icon = res_icon.replace("##front##", res_icon_front)
         res_icon = res_icon.replace("##state##", state)
         if not disabled:
-            res_icon = res_icon.replace("##font##", "font-"+state.lower())
+            res_icon = res_icon.replace("##font##", "font-" + state.lower())
         else:
             res_icon = res_icon.replace("##font##", "font-greyed")
         res_icon = res_icon.replace("##icon##", res_icon_state)
@@ -380,9 +373,6 @@ class Helper(object):
         :return: link to the object url
         :rtype: string
         """
-        # if obj_type and obj_type not in self.app.frontend.dm_domains:
-            # return 'n/a'
-
         if not obj_type or not name:
             return 'n/a'
 
@@ -392,5 +382,5 @@ class Helper(object):
             label if label else name
         )
 
-# Prepare assets
+# Prepare helper object
 helper = Helper(app)

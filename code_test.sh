@@ -20,7 +20,7 @@
 # along with (WebUI).  If not, see <http://www.gnu.org/licenses/>.
 
 echo 'pep8 ...'
-pep8 --max-line-length=100 --exclude='*.pyc, *.cfg' --ignore='E402' start.py alignak_webui/*
+pep8 --max-line-length=100 --exclude='*.pyc, *.cfg' --ignore='E402' app.py alignak_webui/*
 echo 'pylint ...'
 pylint --rcfile=.pylintrc alignak_webui/
 echo 'pep157 ...'

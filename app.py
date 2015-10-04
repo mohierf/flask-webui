@@ -38,19 +38,17 @@ Commands:
 import os
 import sys
 from docopt import docopt
-from configparser import ConfigParser
 import logging
 from logging.handlers import TimedRotatingFileHandler
-from datetime import timedelta
 from alignak_webui import app, frontend, manifest, settings
 from alignak_webui import __name__ as __pkg_name__
 
 from alignak_webui.backend import FrontEnd
 from alignak_webui.user import User
+from alignak_webui.utils.settings import Settings
 
 
 def main():
-    print manifest
     args = docopt(__doc__, help=True, options_first=True, version=manifest['version'])
 
     # Set application logger name
@@ -78,83 +76,12 @@ def main():
     # Set and read configuration file
     cfg_file = args['--config']
     print 'Required configuration file:', cfg_file
-    if not os.path.isabs(cfg_file):
-        # Searched path
-        cfg_etc = os.path.join(os.path.join('/etc', manifest['name'].lower()), cfg_file)
-        cfg_home = os.path.expanduser('~/' + manifest['name'].lower() + '.cfg')
-        cfg_app = os.path.join(os.path.abspath(os.path.dirname(__file__)), cfg_file)
-        # Sub directory ... to be checked after real setup !
-        cfg_app = os.path.join(
-            os.path.join(os.path.abspath(os.path.dirname(__file__)), manifest['name'].lower()),
-            cfg_file
-        )
-
-        # In /etc/alignak_webui ...
-        if os.path.isfile(cfg_etc):
-            cfg_file = cfg_etc
-        # In current directory ...
-        elif os.path.isfile(cfg_app):
-            cfg_file = cfg_app
-        # In user home directory ...
-        elif os.path.isfile(cfg_home):
-            cfg_file = cfg_home
-
-    if not os.path.isfile(cfg_file):
-        print "Required configuration file not found: %s or %s or %s" % (cfg_etc, cfg_home, cfg_app)
+    sett = Settings(app)
+    found_cfg_files = sett.read(cfg_file, settings)
+    if not found_cfg_files:
+        print "Required configuration file not found."
         sys.exit(1)
-
     print 'Found configuration file:', cfg_file
-    config = ConfigParser(defaults=settings)
-    found_cfg_files = config.read([cfg_file])
-    if found_cfg_files:
-        # Build Flask configuration parameters
-        if config.has_section('flask'):
-            for key, value in config.items('flask'):
-                if key.upper() in app.config:
-                    app_default = app.config[key.upper()]
-                    if isinstance(app_default, timedelta):
-                        app.config[key.upper()] = timedelta(value)
-                    elif isinstance(app_default, bool):
-                        app.config[key.upper()] = True if value in [
-                            'true', 'True', 'on', 'On', 'y', 'yes', '1'
-                        ] else False
-                    elif isinstance(app_default, float):
-                        app.config[key.upper()] = float(value)
-                    elif isinstance(app_default, int):
-                        app.config[key.upper()] = int(value)
-                    else:
-                        # All the string keys need to be coerced into str()
-                        # because Flask expects some of them not to be unicode
-                        app.config[key.upper()] = str(value)
-                else:
-                    if value.isdigit():
-                        app.config[key.upper()] = int(value)
-                    else:
-                        app.config[key.upper()] = str(value)
-        else:
-            app.config['HOST'] = '127.0.0.1'
-            app.config['PORT'] = 80
-            app.config['DEBUG'] = False
-
-        # Build a secret key if none defined ...
-        if 'SECRET_KEY' not in app.config or not app.config['SECRET_KEY']:
-            app.config['SECRET_KEY'] = os.urandom(24)
-
-        # Build settings dictionnary for application parameters
-        for section in config.sections():
-            for option in config.options(section):
-                try:
-                    settings[section + '.' + option] = config.get(section, option)
-                    if settings[section + '.' + option] == -1:
-                        print("skip: %s" % section + '.' + option)
-                except Exception as e:
-                    print("exception on %s: %s!", option, str(e))
-                    settings[section + '.' + option] = None
-
-    else:
-        app.logger.warning("No configuration file found.")
-        print "Required configuration file does not exist: %s" % cfg_file
-        sys.exit(1)
 
     # Set logs file
     if args['--logs'] != 'no application log':
@@ -198,6 +125,20 @@ def main():
         print "server logs stored in rotating file: %s" % args['--access']
 
     try:
+        # Update application manifest
+        manifest['fmw_name'] = settings['framework.name']
+        manifest['fmw_version'] = settings['framework.version']
+        manifest['webui_logo'] = settings.get(
+            'ui.webui_logo', '/static/images/logo_webui.png'
+        )
+        manifest['footer_logo'] = settings.get(
+            'ui.footer_logo', '/static/images/logo_webui_xxs.png'
+        )
+        manifest['company_logo'] = settings.get(
+            'ui.company_logo', '/static/images/default_company.png'
+        )
+        manifest['login_text'] = settings['ui.welcome_text']
+
         # Application banner in log
         app.logger.info(
             "--------------------------------------------------------------------------------"
@@ -213,25 +154,20 @@ def main():
         app.logger.debug(
             "--------------------------------------------------------------------------------"
         )
+        app.logger.debug("Framework: %s, version %s", manifest['fmw_name'], manifest['fmw_version'])
+        app.logger.debug(
+            "--------------------------------------------------------------------------------"
+        )
 
         # Application configuration in log
         app.logger.info("Configuration file searched in %s", [cfg_file])
         app.logger.info("Configuration files found: %s", found_cfg_files)
-        app.logger.info("Application settings: %s", settings)
-        app.logger.info("Flask settings: %s", app.config)
-
-        # Update application manifest
-        manifest['fmw_name'] = settings['framework.name']
-        manifest['fmw_version'] = settings['framework.version']
-        manifest['webui_logo'] = settings.get('ui.webui_logo', '/static/images/logo_webui.png')
-        manifest['footer_logo'] = settings.get('ui.footer_logo', '/static/images/logo_webui_xxs.png')
-        manifest['company_logo'] = settings.get('ui.company_logo', '/static/images/default_company.png')
-        manifest['login_text'] = settings['ui.welcome_text']
+        app.logger.info("Application settings: %s", app.config)
 
         # self.initialize(debug=args['--debug'], verbose=args['--verbose'])
         if args['<command>'] == 'start':
             # Initialize backend communication ...
-            frontend = FrontEnd(settings.get('ui.backend', 'http://localhost:5000'))
+            frontend = FrontEnd(app.config.get('ui.backend', 'http://localhost:5000'))
             app.logger.info("Frontend: %s", frontend.url_endpoint_root)
 
             # Configure users' management backend

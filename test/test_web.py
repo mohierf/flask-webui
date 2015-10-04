@@ -28,6 +28,11 @@ from nose import with_setup # optional
 from nose.tools import *
 
 import alignak_webui
+from alignak_webui.backend import FrontEnd
+from alignak_webui import app, frontend, manifest, settings
+from alignak_webui.user import User
+from alignak_webui.utils.settings import Settings
+from alignak_webui.utils.helper import Helper
 
 def setup_module(module):
     print ("") # this is to get a newline after the dots
@@ -51,7 +56,25 @@ class basic_tests(unittest.TestCase):
         alignak_webui.app.config['DEBUG'] = False
 
         alignak_webui.app.config['TESTING'] = True
+
+        cfg_file = "settings.cfg"
+        print 'Required configuration file:', cfg_file
+        sett = Settings(alignak_webui.app)
+        found_cfg_files = sett.read(cfg_file, {})
+        if not found_cfg_files:
+            print "Required configuration file not found."
+            sys.exit(1)
+        print 'Found configuration file:', cfg_file
+
+        # Initialize backend communication ...
+        frontend = FrontEnd(settings.get('ui.backend', 'http://localhost:5000'))
+        print "Frontend: %s", frontend.url_endpoint_root
+
+        # Configure users' management backend
+        User.set_backend(frontend)
+
         self.app = alignak_webui.app.test_client()
+
 
     def tearDown(self):
         print ""
@@ -66,40 +89,37 @@ class basic_tests(unittest.TestCase):
     def logout(self):
         return self.app.get('/logout', follow_redirects=True)
 
-    def test_1_index(self):
-        print ""
-        print "get home page ..."
+    # def test_1_bad_secret(self):
+        # print ''
+        # print 'test secret key not set'
 
-        rv = self.app.get('/')
-        print rv.data
-        assert 'You are not logged in' in rv.data
+        # with assert_raises(RuntimeError) as cm:
+            # rv = self.login('foo', 'foo')
+        # ex = cm.exception
+        # print 'exception:', str(ex)
+        # assert 'the session is unavailable because no secret key was set.  Set the secret_key on the application to something unique and secret.' in str(ex)
 
-    def test_2_bad_secret(self):
-        print ''
-        print 'test secret key not set'
+        # if 'SECRET_KEY' not in alignak_webui.app.config or not alignak_webui.app.config['SECRET_KEY']:
+            # alignak_webui.app.config['SECRET_KEY'] = os.urandom(24)
 
-        with assert_raises(RuntimeError) as cm:
-            rv = self.login('foo', 'foo')
-        ex = cm.exception # raised exception is available through exception property of context
-        print 'exception:', str(ex)
-        assert 'the session is unavailable because no secret key was set.  Set the secret_key on the application to something unique and secret.' in str(ex)
-
-        # Build a secret key if none defined ...
-        if 'SECRET_KEY' not in alignak_webui.app.config or not alignak_webui.app.config['SECRET_KEY']:
-            alignak_webui.app.config['SECRET_KEY'] = os.urandom(24)
-
-    def test_3_login(self):
+    def test_2_login(self):
         print ''
         print 'test login/logout process'
 
         rv = self.app.get('/login')
-        assert '<input type=text name=username>' in rv.data
+        assert '<form id="login"' in rv.data
 
         rv = self.login('admin', 'default')
-        assert 'Logged in as admin' in rv.data
+        assert 'Invalid credentials: username is unknown or password is invalid.' in rv.data
+
+        rv = self.login('admin', '')
+        assert 'Invalid credentials: username is unknown or password is invalid.' in rv.data
+
+        rv = self.login('admin', 'admin')
+        assert '<title>Home page</title>' in rv.data
 
         rv = self.logout()
-        assert 'You are not logged in' in rv.data
+        assert '<form id="login"' in rv.data
 
 
 if __name__ == '__main__':

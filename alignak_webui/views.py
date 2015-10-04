@@ -23,10 +23,12 @@
 Main application views and routes
 """
 # import flask
-from flask import Flask, session, redirect, url_for, escape, request, render_template, flash, get_flashed_messages, g
-from flask.ext.login import login_required, current_user
+from flask import Flask
+from flask import session, redirect, url_for, escape, request
+from flask import render_template, flash, get_flashed_messages, g
+from flask_login import login_required, current_user
 
-from alignak_webui import app, manifest, settings
+from alignak_webui import app, manifest
 from alignak_webui.user import User
 from alignak_webui.utils.helper import helper
 
@@ -48,7 +50,7 @@ def index():
         user=current_user,
         helper=helper,
         manifest=manifest,
-        settings=settings
+        settings=app.config
     )
 
 

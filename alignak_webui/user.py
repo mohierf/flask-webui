@@ -27,7 +27,8 @@
 
 from logging import getLogger
 from datetime import datetime
-from flask.ext.login import UserMixin
+from flask_login import UserMixin
+from alignak_webui import app, manifest
 
 log = getLogger(__name__)
 
@@ -48,6 +49,10 @@ class User(UserMixin):
     def __init__(self):
         """Create a user"""
         self.contact = None
+        self.picture = None
+        self.name = None
+        self.role = None
+        self.is_validated = False
 
     def __str__(self):
         """User to String"""
@@ -94,8 +99,8 @@ class User(UserMixin):
         else:
             # Awful hack ... should find a solution to autenticate against backend with a token!
             if cls.token is not None:
-                self.backend.backend.token = token
-                self.backend.backend.authenticated = True
+                cls.backend.backend.token = token
+                cls.backend.backend.authenticated = True
                 # Build a token test method in backend client class to replace ...
 
             user = User()
@@ -105,17 +110,17 @@ class User(UserMixin):
 
         return None
 
-    def get_from_backend(self, filter):
+    def get_from_backend(self, search_pattern):
         """
             Get user information available in the backend
 
-            Filter is an Eve filter expression:
+            search_pattern is an Eve filter expression:
             - {"where": '{"contact_name": "admin"}'}
             - {"where": '{"token": "Abcdefghijk"}'}
 
             Returns False if information are not available
 
-            :param label: filter
+            :param label: search_pattern
             :type label: dict
 
             :return: True / False
@@ -123,7 +128,9 @@ class User(UserMixin):
         """
         try:
             log.debug("Request matching contacts from backend ...")
-            contacts = self.backend.get_objects('contact', parameters=filter, all_elements=True)
+            contacts = self.backend.get_objects(
+                'contact', parameters=search_pattern, all_elements=True
+            )
             log.debug("Got %d matching contacts", len(contacts))
             if contacts:
                 self.contact = {}
@@ -142,11 +149,11 @@ class User(UserMixin):
 
                 self.role = 'unknown'
                 if 'role' in self.contact and self.contact["role"]:
-                    self.role = settings.get('users.role_'+self.contact["role"], self.role)
+                    self.role = app.config.get('users.role_' + self.contact["role"], self.role)
 
                 self.picture = "/static/images/default_user.png"
                 if 'picture' in self.contact and self.contact["picture"]:
-                    self.picture = settings.get('users.picture_'+self.role, self.picture)
+                    self.picture = app.config.get('users.picture_' + self.role, self.picture)
 
                 log.debug("User is initialized from backend contact, username: %s", self.username)
                 return True
@@ -163,46 +170,53 @@ class User(UserMixin):
         """
         return self.get_username()
 
-    def is_authenticated(self):
-        return self.username is not None and self.password is not None
-
     def authenticate(self, username, password):
-        global frontend
+        """
+            Authenticate user with provided username and password
+
+            Try to log in to the defined backend
+
+            :param username: username
+            :type username: string
+
+            :param password: password
+            :type password: string
+
+            :return: True / False
+            :rtype: bool
+        """
+
         log.debug("User authenticating, credentials: %s/%s", username, password)
-        self.is_authenticated = False
+        self.is_validated = False
         try:
             self.token = self.backend.login(username, password, force=True)
             log.debug("User authentication, token: %s", self.token)
         except Exception as e:
             log.error("Backend raised an exception: %s.", str(e))
-            raise NoBackendError()
         else:
-            log.debug("User is authenticated, username: %s", username)
-
             if self.token:
                 self.get_from_backend({"where": '{"contact_name": "%s"}' % username})
 
-                self.is_authenticated = True
-                return self.is_authenticated
+                log.debug("User is authenticated, username: %s", username)
+
+                self.is_validated = True
+                return self.is_validated
 
         self.username = None
         self.password = None
         self.contact = None
-        return self.is_authenticated
+        return self.is_validated
 
     def get_auth_token(self):
+        """ ...
+        :return: token
+        :rtype: string
+        """
         log.debug("Get user token")
         return self.token
-    # def get_auth_token(self):
-        # """
-        # Encode a secure token for cookie
-        # """
-        # data = [str(self.username), self.password]
-        # return login_serializer.dumps(data)
 
     def get_username(self):
         """ ...
-
         :return: username
         :rtype: string
         """
