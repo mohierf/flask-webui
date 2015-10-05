@@ -344,7 +344,14 @@ class test_frontend(unittest.TestCase):
 
         connection = frontend.login('admin', 'admin')
         assert_true(frontend.authenticated)
-        assert_false(frontend.connected)
+        assert_true(frontend.connected)
+        assert_true(frontend.token)
+
+        print 'authenticated:', frontend.authenticated
+        connection = frontend.connect('admin', 'admin')
+        print 'authenticated:', frontend.authenticated
+        assert_true(frontend.connected)
+        assert_true(frontend.authenticated)
         assert_true(frontend.token)
 
         parameters = {'a': 1, 'b': '2'}

@@ -90,7 +90,7 @@ class test_datatable(unittest.TestCase):
             username='admin', password='admin'
         ), follow_redirects=True)
 
-        self.object_type='contact'
+        self.object_type='service'
 
     def tearDown(self):
         print 'teardown ...'
@@ -113,28 +113,28 @@ class test_datatable(unittest.TestCase):
     def test_2(self):
         print ''
 
-        # Get contacts data
-        print 'get contacts preferences - bad url'
-        resp = self.app.get('/get_prefs/contact')
+        # Get services data
+        print 'get services preferences - bad url'
+        resp = self.app.get('/get_prefs/service')
         ok_(resp.status_code == 404)
         ok_('404 NOT FOUND' in resp.status)
 
-        print 'get contacts preferences without parameters'
+        print 'get services preferences without parameters'
         expected = {
         }
-        rv = self.app.get('/contacts/get_prefs')
+        rv = self.app.get('/services/get_prefs')
         print "Status: %d, '%s'" % (rv.status_code, rv.status)
         ok_(rv.status_code == 200)
         ok_(rv.status == '200 OK')
         # self.assertEqual(json.loads(rv.data), expected)
 
-        print 'get contacts preferences with parameters'
+        print 'get services preferences with parameters'
         parameters = {
             'user': 'admin', 'type': 'test'
         }
         expected = {
         }
-        rv = self.app.get('/contacts/get_prefs', query_string=parameters)
+        rv = self.app.get('/services/get_prefs', query_string=parameters)
         print "Status: %d, '%s'" % (rv.status_code, rv.status)
         ok_(rv.status_code == 200)
         ok_(rv.status == '200 OK')
@@ -142,13 +142,13 @@ class test_datatable(unittest.TestCase):
         print "Data: %s" % (rv.data)
         # self.assertEqual(json.loads(rv.data), expected)
 
-        print 'set contacts preferences without parameters'
-        resp = self.app.post('/contacts/set_prefs')
+        print 'set services preferences without parameters'
+        resp = self.app.post('/services/set_prefs')
         print "Status: %d, '%s'" % (resp.status_code, resp.status)
         ok_(resp.status_code == 400)
         ok_(resp.status == '400 BAD REQUEST')
 
-        print 'set contacts preferences with parameters'
+        print 'set services preferences with parameters'
         parameters = {
             'user': 'admin', 'type': 'test',
             'data': json.dumps({'a': 1, 'b': '2'})
@@ -156,7 +156,7 @@ class test_datatable(unittest.TestCase):
         expected = {
             u'_updated': u'Mon, 05 Oct 2015 17:03:51 GMT', u'_links': {u'self': {u'href': u'uipref/5612ad77f9e3854415d129c0', u'title': u'Uipref'}}, u'_created': u'Mon, 05 Oct 2015 17:03:51 GMT', u'_status': u'OK', u'_id': u'5612ad77f9e3854415d129c0', u'_etag': u'8dc871452d0f85509ff67700fc5c1635af3ffc69'
         }
-        rv = self.app.post('/contacts/set_prefs', data=parameters)
+        rv = self.app.post('/services/set_prefs', data=parameters)
         print "Status: %d, '%s'" % (rv.status_code, rv.status)
         ok_(rv.status_code == 200)
         ok_(rv.status == '200 OK')
@@ -166,13 +166,13 @@ class test_datatable(unittest.TestCase):
         ok_('_status' in json_data)
         ok_(json_data['_status'] == 'OK')
 
-        print 'get contacts preferences'
+        print 'get services preferences'
         parameters = {
             'user': 'admin', 'type': 'test'
         }
         expected = {
         }
-        rv = self.app.get('/contacts/get_prefs', query_string=parameters)
+        rv = self.app.get('/services/get_prefs', query_string=parameters)
         print "Status: %d, '%s'" % (rv.status_code, rv.status)
         ok_(rv.status_code == 200)
         ok_(rv.status == '200 OK')
@@ -186,27 +186,27 @@ class test_datatable(unittest.TestCase):
 
 
     def test_3(self):
-        # Get contacts data
+        # Get services data
         # Max results
-        print 'get contacts table ...'
-        rv = self.app.get('/contacts')
+        print 'get services table ...'
+        rv = self.app.get('/services')
         ok_(rv.status_code == 200)
         ok_(rv.status == '200 OK')
         # ok_(rv.data == '')
         print "Data: %s" % (rv.data)
-        ok_("$('#tbl_contact').DataTable" in rv.data)
+        ok_("$('#tbl_service').DataTable" in rv.data)
 
-        # Get contacts data
+        # Get services data
         # Max results and projection
-        # print 'get contacts data, max length is 1, projection to get only name and contact_name'
+        # print 'get services data, max length is 1, projection to get only name and service_name'
         # columns = {
-            # "columns[0][data]": "contact_name",
+            # "columns[0][data]": "service_name",
             # "columns[0][name]": "",
             # "columns[0][searchable]": "true",
             # "columns[0][orderable]": "true",
             # "columns[0][search][value]": "",
             # "columns[0][search][regexp]": "false",
-            # "columns[1][data]": "contact_name",
+            # "columns[1][data]": "service_name",
             # "columns[1][name]": "",
             # "columns[1][searchable]": "true",
             # "columns[1][orderable]": "true",
@@ -216,7 +216,7 @@ class test_datatable(unittest.TestCase):
         # parameters = { 'length': 1 }
         # parameters.update(columns)
         # print "parameters: ", parameters
-        # resp = self.app.get('/elements/contact', params=parameters)
+        # resp = self.app.get('/elements/service', params=parameters)
         # resp = resp.json
         # ok_('draw' in resp)
         # ok_('recordsTotal' in resp)
@@ -226,8 +226,8 @@ class test_datatable(unittest.TestCase):
         # items = resp['data']
         # print "Got %s elements:" % len(items)
         # for item in items:
-            # ok_('contact_name' in item)
-            # print "contact: %s" % (item["contact_name"])
+            # ok_('service_name' in item)
+            # print "service: %s" % (item["service_name"])
             # ok_('name' in item)
-            # print "contact: %s - %s" % (item["contact_name"], item["name"])
-            # print "contact: %s" % (item)
+            # print "service: %s - %s" % (item["service_name"], item["name"])
+            # print "service: %s" % (item)
