@@ -41,7 +41,7 @@ def teardown_module(module):
 
 import alignak_webui
 from alignak_webui import app, __application__, settings, __version__, __copyright__
-from alignak_webui import __releasenotes__, __license__, __doc_url__, get_version
+from alignak_webui import __releasenotes__, __license__, __doc_url__
 
 class test_1_run(unittest.TestCase):
 
@@ -49,7 +49,7 @@ class test_1_run(unittest.TestCase):
         print 'test config'
 
         print "application: %s" % __application__
-        print "version: %s / %s" % (__version__, get_version())
+        print "version: %s" % __version__
         print "license: %s" % __license__
         print "copyright: %s" % __copyright__
         print "release: %s" % __releasenotes__
