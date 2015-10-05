@@ -87,7 +87,7 @@ def set_prefs(object_type=None):
         res = jsonify(**resp)
         res.status_code = 200
         return res
-    except Exception as e:
+    except Exception as e:  # pragma: no cover - very difficult with unit testing ...
         logger.error("set_prefs, exception: %s", str(e))
         raise DatatableException(
             450,
@@ -121,7 +121,7 @@ def get_prefs(object_type=None):
             return res
         else:
             return ''
-    except Exception as e:
+    except Exception as e:  # pragma: no cover - very difficult with unit testing ...
         logger.error("get_prefs, exception: %s", str(e))
         raise DatatableException(
             450,

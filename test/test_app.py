@@ -109,7 +109,7 @@ class test_1_run(unittest.TestCase):
         # assert 'returned non-zero exit status 1' in str(ex)
         os.chdir(mydir)
 
-    def test_7_start_configuration_not_found(self):
+    def test_6_start_configuration_not_found(self):
         print ('test application start - configuration file not found')
 
         mydir = os.getcwd()
@@ -142,7 +142,7 @@ class test_2_server(unittest.TestCase):
         process.terminate()
         os.chdir(mydir)
 
-    def test_4_start_application_verbose(self):
+    def test_2_start_application_verbose(self):
         print ('test application start in verbose mode')
 
         mydir = os.getcwd()
@@ -156,7 +156,7 @@ class test_2_server(unittest.TestCase):
         process.terminate()
         os.chdir(mydir)
 
-    def test_5_start_application_debug(self):
+    def test_3_start_application_debug(self):
         print ('test application start in debug mode')
 
         mydir = os.getcwd()
@@ -170,7 +170,7 @@ class test_2_server(unittest.TestCase):
         process.terminate()
         os.chdir(mydir)
 
-    def test_8_start_configuration(self):
+    def test_4_start_configuration(self):
         print ('test application start - configuration file found')
 
         mydir = os.getcwd()
