@@ -52,11 +52,12 @@ class FrontEnd(object):
     last_livestate_hosts = None
     last_livestate_services = None
 
-    def __init__(self, endpoint):
+    def __init__(self):
         """
         Initialize class object ...
         """
-        self.backend = Backend(endpoint)
+        self.url_endpoint_root = None
+        self.backend = None
 
         self.connected = False
         self.initialized = False
@@ -66,14 +67,6 @@ class FrontEnd(object):
         # Backend objects which will be loaded on backend connection ...
         # ... do not need to wait for any user request to get these objects
         self.interested_in = ['contact', 'uipref']
-
-        # Backend API start point
-        if endpoint.endswith('/'):  # pragma: no cover - test url is complying ...
-            self.url_endpoint_root = endpoint[0:-1]
-        else:
-            self.url_endpoint_root = endpoint
-
-        log.info("backend endpoint: %s", self.url_endpoint_root)
 
         # Backend available objects (filled with objects received from backend)
         self.backend_available_objets = []
@@ -86,6 +79,19 @@ class FrontEnd(object):
         self.dm_api_name = None
         self.dm_base = None
         self.dm_domains = {}
+
+    def configure(self, endpoint):
+        """
+        Initialize backend connection ...
+        """
+        # Backend API start point
+        if endpoint.endswith('/'):  # pragma: no cover - test url is complying ...
+            self.url_endpoint_root = endpoint[0:-1]
+        else:
+            self.url_endpoint_root = endpoint
+
+        log.info("backend endpoint: %s", self.url_endpoint_root)
+        self.backend = Backend(self.url_endpoint_root)
 
     def login(self, username, password, force=False):
         """
@@ -374,6 +380,7 @@ class FrontEnd(object):
 
         except Exception as e:  # pragma: no cover - need specific backend tests
             log.error("set_user_preferences, exception: %s", str(e))
+            raise e
 
         return response
 
@@ -404,6 +411,7 @@ class FrontEnd(object):
 
         except Exception as e:  # pragma: no cover - need specific backend tests
             log.error("get_user_preferences, exception: %s", str(e))
+            raise e
 
         return None  # pragma: no cover - need specific backend tests
 

@@ -26,7 +26,8 @@ from flask import redirect, url_for, request, render_template, flash
 
 from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user
 from flask_login import current_user
-from alignak_webui import app, manifest
+from alignak_webui.backend import FrontEnd
+from alignak_webui import app, frontend, manifest, settings
 from alignak_webui.user import User
 
 # Login manager
@@ -78,6 +79,9 @@ def login():
     If GET request, display login form
     If POST request, authenticates user and redirects to index page
     """
+    # Get configured backend ...
+    # frontend = app.config['frontend']
+
     error = None
     if request.method == 'POST':
         username = request.form['username']
@@ -86,11 +90,15 @@ def login():
 
         user = User()
         if user and user.authenticate(username, password):
-            if login_user(user, remember=True):
-                flash(u"You were successfully logged in.", 'info')
-                return redirect(request.args.get('next') or url_for('index'))
+            if frontend and frontend.connect(username, password):
+                if login_user(user, remember=True):
+                    # Initialize backend
+                    flash(u"You were successfully logged in.", 'info')
+                    return redirect(request.args.get('next') or url_for('index'))
+                else:  # pragma: no cover - should never happen ...
+                    error = u"User login failed."
             else:  # pragma: no cover - should never happen ...
-                error = u"User login failed."
+                error = u"Backend connection failed."
         else:
             error = u"Invalid credentials: username is unknown or password is invalid."
 

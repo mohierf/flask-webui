@@ -24,12 +24,13 @@
 """
 import re
 import flask
+from alignak_webui import backend
 
 # Application manifest
 VERSION = (0, 1, 0)
 
 __application__ = u"Alignak_Webui"
-__version__ = '.'.join((str(each) for each in VERSION[:4]))
+__version__ = get_version()
 __author__ = u"Frédéric MOHIER"
 __copyright__ = u"(c) 2015 - %s" % __author__
 __license__ = u"GNU Affero General Public License, version 3"
@@ -60,16 +61,9 @@ settings = {
     'PORT': "5000"
 }
 
-# Frontend connection
-frontend = None
+# Frontend connection - create an empty object for it exists
+frontend = backend.FrontEnd()
 
-
-# setup.py imports this module to gather package version
-def get_version():
-    """
-    Returns shorter version (digit parts only) as string.
-    """
-    return '.'.join((str(each) for each in VERSION[:4]))
 
 # This import must always remain at the end of this file as recommended in:
 # http://flask.pocoo.org/docs/0.10/patterns/packages/

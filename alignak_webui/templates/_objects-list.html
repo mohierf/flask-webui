@@ -1,0 +1,185 @@
+{# alignak_webui/contacts/list.html_ #}
+
+{% extends "layout.html" %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="/static/css/jquery.dataTables.css"></link>
+    <link rel="stylesheet" href="/static/css/dataTables.bootstrap.css"></link>
+    <link rel="stylesheet" href="/static/css/buttons.dataTables.css"></link>
+{% endblock %}
+{% block extra_js %}
+    <script type="text/javascript" src="/static/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" src="/static/js/dataTables.bootstrap.js"></script>
+    <script type="text/javascript" src="/static/js/dataTables.responsive.js"></script>
+    <script type="text/javascript" src="/static/js/dataTables.buttons.js"></script>
+    <script type="text/javascript" src="/static/js/buttons.bootstrap.js"></script>
+    <script type="text/javascript" src="/static/js/buttons.colVis.js"></script>
+{% endblock %}
+
+
+{% block title %}{{ ui_dm["title"] }}{% endblock %}
+
+{% block body %}
+    {% if ui_dm["title"] %}
+    <h1>{{ ui_dm["title"] }}</h1>
+    {% endif %}
+    {% if ui_dm["subtitle"] %}
+    <h2>{{ ui_dm["subtitle"] }}</h2>
+    {% endif %}
+
+    <hr/>
+
+    {% if not list %}
+        <div class="alert alert-info">
+            <p class="font-critical">No elements available.</p>
+        </div>
+    {% else %}
+        <div class="table-responsive">
+            <!-- TODO ... data- ... -->
+            <table id="tbl_{{object_type}}" class="table table-striped" data-page-length="25" data-order="[[ 1, &quot;asc&quot; ]]">
+                <thead>
+                    <tr>
+                    {% for column in columns %}
+                    <th data-name="{{ column['name'] }}" data-type="{{ column['type'] }}">{{ column['title'] }}</th>
+                    {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+    <script>
+    $(document).ready(function() {
+        var debugJs = true;
+
+        $('#tbl_{{object_type}}').DataTable( {
+            // Table features
+            // Pagination and length change
+            "paging": true,
+            "lengthChange": true,
+            "pageLength": 25,
+            "lengthMenu": [ 1, 10, 25, 50, 75, 100 ],
+            // Table information
+            "info": false,
+            // Table ordering
+            "ordering": true,
+
+            // Responsive mode
+            //responsive: true,
+
+            // Server side processing
+            "columns": {{ json_columns|safe }},
+            "serverSide": true,
+            "ajax": {
+                "url": "/{{object_type}}s/data",
+                "type": "GET",
+                "dataSrc": "data",
+                "data": function ( d ) {
+                    // Add an extra field
+                    d = $.extend({}, d, { "object_type": '{{object_type}}' });
+                    // Json stringify to avoid complex array formatting ...
+                    d.columns = JSON.stringify( d.columns );
+                    d.search = JSON.stringify( d.search );
+                    d.order = JSON.stringify( d.order );
+                    return ( d );
+                }
+            },
+
+            // Table state saving/restoring
+            stateSave: true,
+            // Load table parameters
+            stateLoadCallback: function (settings) {
+                if (debugJs) console.debug("state loading for 'tbl_{{object_type}}' ...");
+
+                // Get table data from the server ...
+                var o;
+                $.ajax( {
+                    "url": "/{{object_type}}s/get_prefs",
+                    "data": {
+                        "user": '{{user.get_username()}}',
+                        "type": 'table'
+                    },
+                    "async": false,
+                    "dataType": "json",
+                    "success": function (json) {
+                        if (debugJs) console.debug("state restored for 'tbl_{{object_type}}' ...", json);
+                        o = json;
+                    }
+                } );
+
+                return o;
+            },
+            // Save table parameters
+            stateSaveCallback: function (settings, data) {
+                if (debugJs) console.debug("state saving for 'tbl_{{object_type}}' ...", settings, data);
+
+                // Post table data to the server ...
+                $.ajax( {
+                    "url": "/{{object_type}}s/set_prefs",
+                    "data": {
+                        "user": '{{user.get_username()}}',
+                        "type": 'table',
+                        // Json stringify to avoid complex array formatting ...
+                        "data": JSON.stringify( data )
+                    },
+                    "dataType": "json",
+                    "type": "POST",
+                    "success": function () {
+                        if (debugJs) console.debug("state saved for 'tbl_{{object_type}}' ...", settings, data);
+                    }
+                } );
+            },
+
+            /*
+                B - buttons
+                l - length changing input control
+                f - filtering input
+                t - The table!
+                i - Table information summary
+                p - pagination control
+                r - processing display element
+            dom: 'Blfrtip',
+            */
+            dom: 'B<"clearfix">lfrtip',
+            // Table columns visibility button
+            buttons: [
+                'colvis', 'csv'
+            ]
+        });
+
+        $('#tbl_{{object_type}}').on( 'xhr.dt', function () {
+            var table = $('#tbl_{{object_type}}').DataTable({ retrieve: true });
+            var json = table.ajax.json();
+            if (debugJs) console.debug('Datatable event, xhr, url: ' + table.ajax.url());
+            if (debugJs) console.debug('Datatable event, xhr, json: ' + table.ajax.json());
+            if (debugJs) console.debug('Datatable event, xhr, ' + json.data +' row(s) loaded');
+            if (debugJs) console.debug('Datatable event, xhr, ' + json.data.length +' row(s) loaded');
+        });
+
+        $('#tbl_{{object_type}}').on( 'draw.dt', function () {
+            if (debugJs) console.debug('Datatable event, draw ...');
+        });
+
+        $('#tbl_{{object_type}}').on( 'error.dt', function ( e, settings ) {
+            if (debugJs) console.debug('Datatable event, error ...');
+        });
+
+        $('#tbl_{{object_type}}').on( 'init.dt', function ( e, settings ) {
+            if (debugJs) console.debug('Datatable event, init ...');
+        });
+
+        $('body').on('click', '#tbl_{{object_type}} tbody tr', function (e) {
+            var table = $('#tbl_{{object_type}}').DataTable({ retrieve: true });
+            if (debugJs) console.debug('Datatable event, click row ...');
+            if ( $(this).hasClass('selected') ) {
+                $(this).removeClass('selected');
+            } else {
+                table.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+            }
+        });
+    });
+    </script>
+    {% endif %}
+{% endblock %}

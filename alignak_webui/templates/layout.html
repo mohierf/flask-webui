@@ -24,10 +24,12 @@
         {% assets "app_css" %}
         <link rel="stylesheet" href="{{ ASSET_URL }}"></link>
         {% endassets %}
+        {% block extra_css %}{% endblock %}
 
         {% assets "app_js" %}
         <script type="text/javascript" src="{{ ASSET_URL }}"></script>
         {% endassets %}
+        {% block extra_js %}{% endblock %}
 
         <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -44,7 +46,6 @@
             <div id="sidebar-wrapper">
                 {% include '_sidebar.html' %}
             </div>
-            <!-- /#sidebar-wrapper -->
             <!-- Page Content -->
             <div id="page-content-wrapper">
                 <div class="container-fluid">

@@ -67,14 +67,13 @@ class basic_tests(unittest.TestCase):
         print 'Found configuration file:', cfg_file
 
         # Initialize backend communication ...
-        frontend = FrontEnd(settings.get('ui.backend', 'http://localhost:5000'))
+        frontend.configure(alignak_webui.app.config.get('ui.backend', 'http://localhost:5000'))
         print "Frontend: %s", frontend.url_endpoint_root
 
         # Configure users' management backend
         User.set_backend(frontend)
 
         self.app = alignak_webui.app.test_client()
-
 
     def tearDown(self):
         print ""

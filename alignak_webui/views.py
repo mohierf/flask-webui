@@ -24,13 +24,14 @@ Main application views and routes
 """
 # import flask
 from flask import Flask
-from flask import session, redirect, url_for, escape, request
+from flask import session, redirect, url_for, escape, request, make_response
 from flask import render_template, flash, get_flashed_messages, g
 from flask_login import login_required, current_user
 
-from alignak_webui import app, manifest
+from alignak_webui import app, manifest, frontend
 from alignak_webui.user import User
 from alignak_webui.utils.helper import helper
+from alignak_webui.datatable import DatatableException
 
 
 @app.route('/')
@@ -54,8 +55,37 @@ def index():
     )
 
 
+@app.errorhandler(401)
+def custom_401(error):  # pragma: no cover
+    """
+    Custom 401 error
+    """
+    resp = make_response(u"Access is denied without logging in", error)
+    resp.headers['WWWAuthenticate'] = 'Basic realm="Login Required"'
+    return resp
+
+
+@app.errorhandler(DatatableException)
+def custom_DatatableException(error):  # pragma: no cover
+    """
+    Custom Datatable error
+    """
+    app.logger.debug("custom_DatatableException: %s", error)
+    return make_response(u"Exception ...", 450)
+
+
+@app.errorhandler(404)
+def page_not_found(error):  # pragma: no cover
+    """
+    Custom 404 error
+    """
+    app.logger.debug("page_not_found: %s", error)
+    resp = make_response('Page not found', 404)
+    return resp
+
+
 # Shutdown Web server ...
-def shutdown_server():
+def shutdown_server():  # pragma: no cover
     """ ../.. """
     func = request.environ.get('werkzeug.server.shutdown')
     if func is None:
@@ -65,7 +95,7 @@ def shutdown_server():
 
 
 @app.route('/shutdown', methods=['POST'])
-def shutdown():
+def shutdown():  # pragma: no cover
     """ ../.. """
     shutdown_server()
     return 'Server shutting down...'

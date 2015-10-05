@@ -39,6 +39,7 @@ import os
 import sys
 from docopt import docopt
 import logging
+import traceback
 from logging.handlers import TimedRotatingFileHandler
 from alignak_webui import app, frontend, manifest, settings
 from alignak_webui import __name__ as __pkg_name__
@@ -46,6 +47,7 @@ from alignak_webui import __name__ as __pkg_name__
 from alignak_webui.backend import FrontEnd
 from alignak_webui.user import User
 from alignak_webui.utils.settings import Settings
+from alignak_webui.utils.plugins import Plugins
 
 
 def main():
@@ -164,14 +166,24 @@ def main():
         app.logger.info("Configuration files found: %s", found_cfg_files)
         app.logger.info("Application settings: %s", app.config)
 
-        # self.initialize(debug=args['--debug'], verbose=args['--verbose'])
         if args['<command>'] == 'start':
             # Initialize backend communication ...
-            frontend = FrontEnd(app.config.get('ui.backend', 'http://localhost:5000'))
-            app.logger.info("Frontend: %s", frontend.url_endpoint_root)
+            frontend.configure(app.config.get('ui.backend', 'http://localhost:5000'))
+            app.logger.info("Backend used: %s", frontend.url_endpoint_root)
 
             # Configure users' management backend
             User.set_backend(frontend)
+
+            # Application current directory
+            app_dir = os.path.abspath(os.path.dirname(__file__))
+
+            # Load application plugins
+            plugins = Plugins(app)
+            plugins_dir = os.path.join(
+                os.path.join(app_dir, manifest['name'].lower()),
+                app.config.get('ui.plugins_dir', 'plugins')
+            )
+            plugins.load_plugins(plugins_dir)
 
             app.run(
                 host=app.config['HOST'],
@@ -181,6 +193,7 @@ def main():
     except Exception as e:
         print("Command '%s' failed, exception: %s / %s", args['<command>'], type(e), str(e))
         app.logger.error("failed to launch command '%s'", args['<command>'])
+        app.logger.error("Back trace of this kill: %s", traceback.format_exc())
         sys.exit(3)
 
 if __name__ == "__main__":
