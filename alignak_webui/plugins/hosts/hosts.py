@@ -32,8 +32,8 @@
 """
 
 from alignak_webui.datatable import set_prefs, get_prefs, table_data, table, page
-from flask import Blueprint, render_template, abort, current_app
-from jinja2 import TemplateNotFound
+from flask import Blueprint
+from flask_login import login_required
 from logging import getLogger
 
 logger = getLogger(__name__)
@@ -47,6 +47,7 @@ hosts = Blueprint('hosts', __name__, template_folder='templates', static_folder=
 
 
 @hosts.route('/get_prefs')
+@login_required
 def hosts_get_prefs():
     """ Call default datatables function """
     logger.debug("hosts_get_prefs")
@@ -57,6 +58,7 @@ def hosts_get_prefs():
 
 
 @hosts.route('/set_prefs', methods=['POST'])
+@login_required
 def hosts_set_prefs():
     """ Call default datatables function """
     logger.debug("hosts_set_prefs")
@@ -64,18 +66,21 @@ def hosts_set_prefs():
 
 
 @hosts.route('/data')
+@login_required
 def hosts_data():
     """ Call default datatables function """
     return table_data(OBJECT_TYPE)
 
 
 @hosts.route('')
+@login_required
 def hosts_list():
     """ Call default datatables function """
     return table(OBJECT_TYPE)
 
 
 @hosts.route('/<name>')
+@login_required
 def hosts_page(name):
     """ Call default datatables function """
     logger.debug("hosts_page: %s", name)

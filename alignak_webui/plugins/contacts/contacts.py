@@ -32,8 +32,8 @@
 """
 
 from alignak_webui.datatable import set_prefs, get_prefs, table_data, table, page
-from flask import Blueprint, render_template, abort, current_app
-from jinja2 import TemplateNotFound
+from flask import Blueprint
+from flask_login import login_required
 from logging import getLogger
 
 logger = getLogger(__name__)
@@ -47,6 +47,7 @@ contacts = Blueprint('contacts', __name__, template_folder='templates', static_f
 
 
 @contacts.route('/get_prefs')
+@login_required
 def contacts_get_prefs():
     """ Call default datatables function """
     logger.debug("contacts_get_prefs")
@@ -57,6 +58,7 @@ def contacts_get_prefs():
 
 
 @contacts.route('/set_prefs', methods=['POST'])
+@login_required
 def contacts_set_prefs():
     """ Call default datatables function """
     logger.debug("contacts_set_prefs")
@@ -64,18 +66,21 @@ def contacts_set_prefs():
 
 
 @contacts.route('/data')
+@login_required
 def contacts_data():
     """ Call default datatables function """
     return table_data(OBJECT_TYPE)
 
 
 @contacts.route('')
+@login_required
 def contacts_list():
     """ Call default datatables function """
     return table(OBJECT_TYPE)
 
 
 @contacts.route('/<name>')
+@login_required
 def contacts_page(name):
     """ Call default datatables function """
     logger.debug("contacts_page: %s", name)

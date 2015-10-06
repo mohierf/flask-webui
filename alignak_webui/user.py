@@ -30,7 +30,7 @@ from datetime import datetime
 from flask_login import UserMixin
 from alignak_webui import app, manifest
 
-log = getLogger(__name__)
+logger = getLogger(__name__)
 
 
 # Simple user class based on UserMixin
@@ -64,7 +64,7 @@ class User(UserMixin):
         Set the backend used to authenticate users
         """
         cls.backend = backend
-        log.debug("users' authentication backend defined: %s", backend.url_endpoint_root)
+        logger.debug("users' authentication backend defined: %s", backend.url_endpoint_root)
 
     @classmethod
     def get_from_username(cls, username):  # pragma: no cover - impossible in unit testing
@@ -73,14 +73,15 @@ class User(UserMixin):
 
             Returns None if not exist
         """
-        log.debug("Get user from username: %s", username)
+        logger.debug("Get user from username: %s", username)
         if cls.username == username:
-            log.debug("get_from_username, user is already initialized")
+            logger.debug("get_from_username, user is already initialized")
             return cls
         else:
             user = User()
             parameters = {"where": '{"contact_name": "%s"}' % username}
             if user.get_from_backend(parameters):
+                user.is_validated = True
                 return user
 
         return None
@@ -92,22 +93,17 @@ class User(UserMixin):
 
             Returns None if not exist
         """
-        log.debug("Get user from token: %s", token)
+        logger.debug("Get user from token: %s", token)
         if cls.token == token:
-            log.debug("get_from_token, user is already initialized")
+            logger.debug("get_from_token, user is already initialized")
             return cls
         else:
-            # Awful hack ... should find a solution to autenticate against backend with a token!
-            if cls.token is not None:
-                cls.backend.backend.token = token
-                cls.backend.backend.authenticated = True
-                # Build a token test method in backend client class to replace ...
-
             user = User()
-            parameters = {"where": '{"token": "%s"}' % token}
-            if user.get_from_backend(parameters):
+            if user.authenticate(token=token):
+                user.is_validated = True
                 return user
 
+        logger.error(" Backend connection failed")
         return None
 
     def get_from_backend(self, search_pattern):
@@ -127,15 +123,15 @@ class User(UserMixin):
             :rtype: bool
         """
         try:
-            log.debug("Request matching contacts from backend ...")
+            logger.debug("Request matching contacts from backend ...")
             contacts = self.backend.get_objects(
                 'contact', parameters=search_pattern, all_elements=True
             )
-            log.debug("Got %d matching contacts", len(contacts))
+            logger.debug("Got %d matching contacts", len(contacts))
             if contacts:
                 self.contact = {}
                 for key in contacts[0]:
-                    log.debug("Add attribute '%s' = %s", key, contacts[0][key])
+                    logger.debug("Add attribute '%s' = %s", key, contacts[0][key])
                     self.contact[key] = contacts[0][key]
 
                 self.username = self.contact['contact_name'] or None
@@ -159,10 +155,10 @@ class User(UserMixin):
                 if 'picture' in self.contact and self.contact["picture"]:
                     self.picture = app.config.get('users.picture_' + self.role, self.picture)
 
-                log.debug("User is initialized from backend contact, username: %s", self.username)
+                logger.debug("User initialized from backend contact, username: %s", self.username)
                 return True
         except Exception as e:  # pragma: no cover - should never happen
-            log.error("Backend raised an exception: %s.", str(e))
+            logger.error("Backend raised an exception: %s.", str(e))
 
         return False
 
@@ -174,7 +170,7 @@ class User(UserMixin):
         """
         return self.get_username()
 
-    def authenticate(self, username, password):
+    def authenticate(self, username=None, password=None, token=None):
         """
             Authenticate user with provided username and password
 
@@ -190,21 +186,27 @@ class User(UserMixin):
             :rtype: bool
         """
 
-        log.debug("User authenticating, credentials: %s/%s", username, password)
+        logger.debug("User authenticating, credentials: %s/%s", username, token)
         self.is_validated = False
         try:
-            self.token = self.backend.login(username, password, force=True)
-            log.debug("User authentication, token: %s", self.token)
+            if token:
+                self.token = self.backend.login(token=token)
+            else:
+                self.token = self.backend.login(username=username, password=password)
+            logger.debug("User authentication, token: %s", self.token)
         except Exception as e:
-            log.error("Backend raised an exception: %s.", str(e))
+            logger.error("Backend raised an exception: %s.", str(e))
         else:
             if self.token:
-                self.get_from_backend({"where": '{"contact_name": "%s"}' % username})
+                self.get_from_backend({"where": '{"token": "%s"}' % token})
 
-                log.debug("User is authenticated, username: %s", username)
+                logger.debug("User is authenticated, username: %s", username)
 
-                self.is_validated = True
-                return self.is_validated
+                if self.backend.connect(token=token):
+                    self.is_validated = True
+                    return self.is_validated
+                else:
+                    logger.error(" Backend connection failed")
 
         self.username = None
         self.password = None
@@ -216,7 +218,7 @@ class User(UserMixin):
         :return: token
         :rtype: string
         """
-        log.debug("Get user token")
+        logger.debug("Get user token")
         return self.token
 
     def get_username(self):

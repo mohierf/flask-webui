@@ -89,16 +89,13 @@ def login():
         app.logger.info("login request for: %s", username)
 
         user = User()
-        if user and user.authenticate(username, password):
-            if frontend and frontend.connect(username, password):
-                if login_user(user, remember=True):
-                    # Initialize backend
-                    flash(u"You were successfully logged in.", 'info')
-                    return redirect(request.args.get('next') or url_for('index'))
-                else:  # pragma: no cover - should never happen ...
-                    error = u"User login failed."
+        if user.authenticate(username, password):
+            if login_user(user, remember=True):
+                # Initialize backend
+                flash(u"You were successfully logged in.", 'info')
+                return redirect(request.args.get('next') or url_for('index'))
             else:  # pragma: no cover - should never happen ...
-                error = u"Backend connection failed."
+                error = u"User login failed."
         else:
             error = u"Invalid credentials: username is unknown or password is invalid."
 

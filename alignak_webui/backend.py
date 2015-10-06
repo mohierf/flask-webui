@@ -93,7 +93,7 @@ class FrontEnd(object):
         log.info("backend endpoint: %s", self.url_endpoint_root)
         self.backend = Backend(self.url_endpoint_root)
 
-    def login(self, username, password, force=False):
+    def login(self, username=None, password=None, token=None, force=False):
         """
         Authenticate user credentials against backend
 
@@ -108,16 +108,33 @@ class FrontEnd(object):
             if self.authenticated and self.token and not force:
                 return self.token
 
-            self.authenticated = False
-            self.token = None
-            log.info("request backend user authentication, username: %s", username)
-            self.authenticated = self.backend.login(username=username, password=password)
-            if self.authenticated:
-                self.token = self.backend.token
+            if token:
+                try:
+                    # Test the backend connection
+                    self.backend.token = token
+                    log.info("request backend user authentication, token: %s", token)
+                    self.backend_available_objets = self.backend.get_domains()
+                    if self.backend_available_objets:
+                        self.authenticated = True
+                        self.token = token
+                        log.info("backend user authenticated")
+                except BackendException as e:
+                    log.error("frontend connection, error: %s", str(e))
+                    self.authenticated = False
+                    self.token = None
+            else:
+                self.authenticated = False
+                self.token = None
+                log.info("request backend user authentication, username: %s", username)
+                self.authenticated = self.backend.login(username=username, password=password)
+                if self.authenticated:
+                    self.token = self.backend.token
 
-                log.info("backend user authenticated: %s", username)
+                    log.info("backend user authenticated: %s", username)
         except BackendException as e:
-            log.error("frontend connection, error: %s", str(e))
+            log.error("backend login, error: %s", str(e))
+            log.debug("exception type: %s", type(e))
+            log.debug("Back trace of this kill: %s", traceback.format_exc())
             self.connected = False
             self.authenticated = self.connected
             raise e
@@ -137,7 +154,7 @@ class FrontEnd(object):
 
         return self.backend.logout()
 
-    def connect(self, username=None, password=None, token=None):
+    def connect(self, username=None, token=None):
         """
         If backend connection is available:
         - retrieves all managed domains on the root endpoint
@@ -145,10 +162,10 @@ class FrontEnd(object):
         - load some persistent elements (defined on init)
         - find the contact associated with the current logged in user
 
-        :param username: user to authenticate
+        :param username: authenticated user
         :type username: string
-        :param password: password
-        :type password: string
+        :param token: user token
+        :type token: string
         :return: true / false
         :rtype: boolean
         """
@@ -157,23 +174,13 @@ class FrontEnd(object):
             matching_contact = False
 
             # Backend authentication ...
-            self.authenticated = False
-            if token and not self.authenticated:
-                self.token = token
-                self.authenticated = True
-            else:
-                if not self.login(username, password):
-                    return self.connected
+            if not self.authenticated:
+                return self.connected
 
             # Connect the backend
             self.backend_available_objets = self.backend.get_domains()
             if self.backend_available_objets:
                 self.connected = True
-                for object_type in self.backend_available_objets:
-                    log.debug(
-                        "backend link: %s, href: %s%s",
-                        object_type["title"], self.url_endpoint_root, object_type["href"]
-                    )
 
             if self.connected:
                 # Retrieve data model from the backend
@@ -188,9 +195,6 @@ class FrontEnd(object):
                     self.dm_domains.update({
                         domain_name: fields
                     })
-                    log.debug(
-                        "domain: %s, fields: %s", domain_name, fields
-                    )
 
                 # Initialize embedded objects
                 if not self.initialized:
