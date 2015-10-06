@@ -338,6 +338,7 @@ class Datatable(object):
 
             resp = frontend.get_objects(self.object_type)
 
+            # Update title with number of elements
             if '%d' in ui_dm["title"]:
                 ui_dm["title"] = ui_dm["title"] % len(resp['_items'])
 
@@ -349,6 +350,7 @@ class Datatable(object):
                 settings=app.config,
                 object_type=self.object_type,
                 ui_dm=ui_dm,
+                ls=frontend.get_livesynthesis(),
                 fields_list=fields_list,
                 columns=table_columns,
                 json_columns=json.dumps(table_columns),
@@ -362,6 +364,7 @@ class Datatable(object):
                 manifest=manifest,
                 settings=app.config,
                 ui_dm=ui_dm,
+                ls=frontend.get_livesynthesis(),
                 fields_list=fields_list,
                 list=[]
             )

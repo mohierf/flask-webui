@@ -51,7 +51,8 @@ def index():
         user=current_user,
         helper=helper,
         manifest=manifest,
-        settings=app.config
+        settings=app.config,
+        ls=frontend.get_livesynthesis()
     )
 
 
