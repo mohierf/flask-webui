@@ -31,7 +31,11 @@ def setup_module(module):
     print ("") # this is to get a newline after the dots
     print ("setup_module before anything in this file")
 
-    app.testing = True
+    alignak_webui.app.config['HOST'] = '127.0.0.1'
+    alignak_webui.app.config['PORT'] = 80
+    alignak_webui.app.config['DEBUG'] = False
+
+    alignak_webui.app.config['TESTING'] = True
 
     # Load application settings
     sett = Settings(app)

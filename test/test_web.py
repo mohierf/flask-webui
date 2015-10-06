@@ -33,6 +33,8 @@ from alignak_webui import app, frontend, manifest, settings
 from alignak_webui.user import User
 from alignak_webui.utils.settings import Settings
 from alignak_webui.utils.helper import Helper
+from flask_login import current_user
+
 
 def setup_module(module):
     print ("") # this is to get a newline after the dots
@@ -92,29 +94,39 @@ class basic_tests(unittest.TestCase):
         print ''
         print 'test login/logout process'
 
-        print 'get login page'
-        rv = self.app.get('/login')
-        assert '<form id="login"' in rv.data
+        with self.app:
+            print 'get login page'
+            rv = self.app.get('/login')
+            assert '<form id="login"' in rv.data
 
-        print 'login refused - credentials'
-        rv = self.login('admin', 'default')
-        assert 'Invalid credentials: username is unknown or password is invalid.' in rv.data
+            print 'login refused - credentials'
+            rv = self.login('admin', 'default')
+            assert 'Invalid credentials: username is unknown or password is invalid.' in rv.data
 
-        print 'login refused - credentials'
-        rv = self.login('admin', '')
-        assert 'Invalid credentials: username is unknown or password is invalid.' in rv.data
+            print 'login refused - credentials'
+            rv = self.login('admin', '')
+            assert 'Invalid credentials: username is unknown or password is invalid.' in rv.data
 
-        print 'login accepted - home page'
-        rv = self.login('admin', 'admin')
-        assert '<title>Home page</title>' in rv.data
+            print 'login accepted - home page'
+            rv = self.login('admin', 'admin')
+            assert '<title>Home page</title>' in rv.data
+            print 'login accepted - user attributes'
+            assert current_user.username == 'admin'
+            print 'user name:', current_user.get_name()
+            print 'token:', current_user.get_auth_token()
+            print 'username:', current_user.get_username()
+            print 'user role:', current_user.get_role()
+            print 'user picture:', current_user.get_picture()
+            print 'admin:', current_user.can_admin()
+            print 'action:', current_user.can_action()
 
-        print 'refresh home page'
-        rv = self.app.get('/')
-        assert '<title>Home page</title>' in rv.data
+            print 'refresh home page'
+            rv = self.app.get('/')
+            assert '<title>Home page</title>' in rv.data
 
-        print 'logout - go to login page'
-        rv = self.logout()
-        assert '<form id="login"' in rv.data
+            print 'logout - go to login page'
+            rv = self.logout()
+            assert '<form id="login"' in rv.data
 
     def test_3_shutdown(self):
         print ''

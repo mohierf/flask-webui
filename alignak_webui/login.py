@@ -60,7 +60,7 @@ def request_loader(req):
     """
     Called when user login check is required
     """
-    app.logger.debug("request_loader - Try to find user from request")
+    app.logger.debug("request_loader - Try to find user from request: %s", req)
     token = req.headers.get('Authorization')
     if token is None:
         token = req.args.get('token')

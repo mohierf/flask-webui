@@ -198,11 +198,11 @@ class User(UserMixin):
             logger.error("Backend raised an exception: %s.", str(e))
         else:
             if self.token:
-                self.get_from_backend({"where": '{"token": "%s"}' % token})
+                self.get_from_backend({"where": '{"token": "%s"}' % self.token})
 
                 logger.debug("User is authenticated, username: %s", username)
 
-                if self.backend.connect(token=token):
+                if self.backend.connect(token=self.token):
                     self.is_validated = True
                     return self.is_validated
                 else:
@@ -210,6 +210,7 @@ class User(UserMixin):
 
         self.username = None
         self.password = None
+        self.token = None
         self.contact = None
         return self.is_validated
 
@@ -218,7 +219,6 @@ class User(UserMixin):
         :return: token
         :rtype: string
         """
-        logger.debug("Get user token")
         return self.token
 
     def get_username(self):
@@ -262,10 +262,7 @@ class User(UserMixin):
         :rtype: boolean
         """
 
-        if 'role' in self.contact and self.contact["role"]:
-            return False
-        else:
-            return self.contact["role"] == 'super_admin' or self.contact["role"] == 'admin'
+        return self.get_role() == 'super_admin' or self.get_role() == 'admin'
 
     def can_action(self):
         """If user can submit some actions ...
