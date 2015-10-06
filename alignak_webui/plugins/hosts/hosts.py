@@ -31,58 +31,32 @@
     ------------------------
 """
 
-from alignak_webui.datatable import set_prefs, get_prefs, table_data, table, page
+from alignak_webui import app
+from alignak_webui.datatable import Datatable
+from alignak_webui.element import ElementsView
 from flask import Blueprint
-from flask_login import login_required
 from logging import getLogger
+
 
 logger = getLogger(__name__)
 
 # Plugin name
 PLUGIN_NAME = "hosts"
-OBJECT_TYPE = "host"
 
 # Flask Blueprint object
-hosts = Blueprint('hosts', __name__, template_folder='templates', static_folder='static')
+bp_name = Blueprint(PLUGIN_NAME, __name__, template_folder='templates', static_folder='static')
 
 
-@hosts.route('/get_prefs')
-@login_required
-def hosts_get_prefs():
-    """ Call default datatables function """
-    logger.debug("hosts_get_prefs")
+class HostsView(ElementsView):
+    """ Backend host object """
 
-    response = get_prefs(OBJECT_TYPE)
-    logger.debug("hosts_get_prefs, response: %s", response)
-    return response
-
-
-@hosts.route('/set_prefs', methods=['POST'])
-@login_required
-def hosts_set_prefs():
-    """ Call default datatables function """
-    logger.debug("hosts_set_prefs")
-    return set_prefs(OBJECT_TYPE)
+    def __init__(self):
+        """Create a new element"""
+        # Call the base class constructor with the parameters it needs
+        super(HostsView, self).__init__()
+        self.object_type = "host"
+        self.element_table = Datatable(self.object_type)
 
 
-@hosts.route('/data')
-@login_required
-def hosts_data():
-    """ Call default datatables function """
-    return table_data(OBJECT_TYPE)
-
-
-@hosts.route('')
-@login_required
-def hosts_list():
-    """ Call default datatables function """
-    return table(OBJECT_TYPE)
-
-
-@hosts.route('/<name>')
-@login_required
-def hosts_page(name):
-    """ Call default datatables function """
-    logger.debug("hosts_page: %s", name)
-
-    return page(OBJECT_TYPE)
+# Register view class near Flask application
+HostsView().register(app, trailing_slash=False)

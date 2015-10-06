@@ -68,6 +68,7 @@ from alignak_webui import app, frontend, manifest, settings
 from alignak_webui.backend import FrontEnd, BackendException
 from alignak_webui import views
 from alignak_webui.user import User
+from alignak_webui.datatable import Datatable
 from alignak_webui.utils.settings import Settings
 from alignak_webui.utils.helper import Helper
 from alignak_webui.utils.plugins import Plugins
@@ -78,6 +79,7 @@ class test_datatable(unittest.TestCase):
 
     object_type = None
     app = None
+    table = None
 
     def setUp(self):
         print ""

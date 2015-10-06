@@ -209,10 +209,11 @@ class FrontEnd(object):
                         if (token and contact["token"] == token) or (
                                 username and contact["contact_name"] == username):
                             matching_contact = True
+                            self.token = contact["token"]
                             # contact["_token"] = self.token
                             log.info(
-                                "found a contact matching logged in user contact: %s",
-                                contact["contact_name"]
+                                "found a contact matching logged in user contact: %s (%s)",
+                                contact["contact_name"], contact["token"]
                             )
                     self.connected = matching_contact
                     self.authenticated = self.connected
@@ -301,8 +302,8 @@ class FrontEnd(object):
         try:
             items = []
 
-            log.info("get_objects, type: %s, parameters: %s / %d",
-                     object_type, parameters, all_elements)
+            log.info("get_objects, type: %s, parameters: %s / %d (%s)",
+                     object_type, parameters, all_elements, self.token)
 
             # Request objects from the backend ...
             if all_elements:

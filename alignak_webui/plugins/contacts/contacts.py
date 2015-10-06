@@ -31,58 +31,32 @@
     ------------------------
 """
 
-from alignak_webui.datatable import set_prefs, get_prefs, table_data, table, page
+from alignak_webui import app
+from alignak_webui.datatable import Datatable
+from alignak_webui.element import ElementsView
 from flask import Blueprint
-from flask_login import login_required
 from logging import getLogger
+
 
 logger = getLogger(__name__)
 
 # Plugin name
 PLUGIN_NAME = "contacts"
-OBJECT_TYPE = "contact"
 
 # Flask Blueprint object
-contacts = Blueprint('contacts', __name__, template_folder='templates', static_folder='static')
+bp_name = Blueprint(PLUGIN_NAME, __name__, template_folder='templates', static_folder='static')
 
 
-@contacts.route('/get_prefs')
-@login_required
-def contacts_get_prefs():
-    """ Call default datatables function """
-    logger.debug("contacts_get_prefs")
+class ContactsView(ElementsView):
+    """ Backend contact object """
 
-    response = get_prefs(OBJECT_TYPE)
-    logger.debug("contacts_get_prefs, response: %s", response)
-    return response
-
-
-@contacts.route('/set_prefs', methods=['POST'])
-@login_required
-def contacts_set_prefs():
-    """ Call default datatables function """
-    logger.debug("contacts_set_prefs")
-    return set_prefs(OBJECT_TYPE)
+    def __init__(self):
+        """Create a new element"""
+        # Call the base class constructor with the parameters it needs
+        super(ContactsView, self).__init__()
+        self.object_type = "contact"
+        self.element_table = Datatable(self.object_type)
 
 
-@contacts.route('/data')
-@login_required
-def contacts_data():
-    """ Call default datatables function """
-    return table_data(OBJECT_TYPE)
-
-
-@contacts.route('')
-@login_required
-def contacts_list():
-    """ Call default datatables function """
-    return table(OBJECT_TYPE)
-
-
-@contacts.route('/<name>')
-@login_required
-def contacts_page(name):
-    """ Call default datatables function """
-    logger.debug("contacts_page: %s", name)
-
-    return page(OBJECT_TYPE)
+# Register view class near Flask application
+ContactsView().register(app, trailing_slash=False)

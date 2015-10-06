@@ -194,6 +194,7 @@ class test_datatable(unittest.TestCase):
         # Max results
         print 'get hosts table ...'
         rv = self.app.get('/hosts')
+        print "Data: %s" % (rv.data)
         ok_(rv.status_code == 200)
         ok_(rv.status == '200 OK')
         # ok_(rv.data == '')

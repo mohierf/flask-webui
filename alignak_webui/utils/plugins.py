@@ -81,11 +81,11 @@ class Plugins(object):
                     # Plugins must have a PLUGIN_NAME property to be considered as valid ...
                     logger.debug("loaded plugin file for '%s'", plugin.PLUGIN_NAME)
 
-                    if not hasattr(plugin, plugin_name):
+                    if not hasattr(plugin, 'bp_name'):  # pragma: no cover
                         continue
 
                     app.register_blueprint(
-                        getattr(plugin, plugin_name),
+                        getattr(plugin, 'bp_name'),
                         url_prefix='/' + plugin_name
                     )
                     i += 1
@@ -93,10 +93,10 @@ class Plugins(object):
                 except Exception as e:  # pragma: no cover
                     logger.warning("failed to load plugin '%s', exception: %s",
                                    plugin_name, str(e))
-                    logger.warning("Back trace of this kill: %s",
-                                   traceback.format_exc())
+                    logger.warning("Back trace: %s", traceback.format_exc())
             except Exception as e:  # pragma: no cover
                 logger.warning("failed to load plugin '%s': %s ...", plugin_name, str(e))
+                logger.warning("Back trace: %s", traceback.format_exc())
 
         logger.info("loaded %d plugins from: %s", i, directory)
         logger.debug("my routes after plugins loading: %s", app.url_map)

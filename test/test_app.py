@@ -40,8 +40,10 @@ def teardown_module(module):
 
 
 import alignak_webui
-from alignak_webui import app, __application__, settings, __version__, __copyright__
+from alignak_webui import app, frontend, manifest, settings
+from alignak_webui import __application__, __version__, __copyright__
 from alignak_webui import __releasenotes__, __license__, __doc_url__
+from alignak_webui.utils.plugins import Plugins
 
 class test_1_run(unittest.TestCase):
 
@@ -54,6 +56,19 @@ class test_1_run(unittest.TestCase):
         print "copyright: %s" % __copyright__
         print "release: %s" % __releasenotes__
         print "doc: %s" % __doc_url__
+
+    def test1_plugins(self):
+        # Application current directory, find plugins directory ...
+        app_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
+
+        # Load application plugins
+        plugins = Plugins(app)
+        plugins_dir = os.path.join(
+            os.path.join(app_dir, manifest['name'].lower()),
+            app.config.get('ui.plugins_dir', 'plugins')
+        )
+        nb_plugins = plugins.load_plugins(plugins_dir)
+        assert nb_plugins > 0
 
     def test_2_start_usage(self):
         print ('test application start - show usage')

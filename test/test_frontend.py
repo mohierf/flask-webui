@@ -106,7 +106,7 @@ class test_frontend(unittest.TestCase):
         connection = frontend.login('admin', 'bad_password')
         assert_false(frontend.authenticated)
 
-        connection = frontend.connect('admin', 'bad_password')
+        connection = frontend.connect('admin')
         assert_false(frontend.connected)
         assert_false(frontend.authenticated)
 
@@ -114,13 +114,13 @@ class test_frontend(unittest.TestCase):
         print ''
         print 'test refused connection with token'
 
-        with assert_raises(BackendException) as cm:
-            print 'authenticated:', frontend.authenticated
-            connection = frontend.connect(token='anything')
-            print 'authenticated:', frontend.authenticated
-        ex = cm.exception # raised exception is available through exception property of context
-        print 'exception:', str(ex.code)
-        assert_true(ex.code == 1001, str(ex))
+        # with assert_raises(BackendException) as cm:
+        print 'authenticated:', frontend.authenticated
+        connection = frontend.connect(token='anything')
+        print 'authenticated:', frontend.authenticated
+        # ex = cm.exception # raised exception is available through exception property of context
+        # print 'exception:', str(ex.code)
+        # assert_true(ex.code == 1001, str(ex))
         assert_false(frontend.connected)
         assert_false(frontend.authenticated)
 
@@ -139,6 +139,7 @@ class test_frontend(unittest.TestCase):
         assert_false(frontend.connected)
         assert_true(frontend.token)
 
+        # Force authentication ...
         connection = frontend.login('admin', 'admin', force=True)
         assert_true(frontend.authenticated)
         assert_false(frontend.connected)
@@ -150,11 +151,10 @@ class test_frontend(unittest.TestCase):
         assert_false(frontend.token)
 
         print 'authenticated:', frontend.authenticated
-        connection = frontend.connect('admin', 'admin')
+        connection = frontend.connect(username='admin')
         print 'authenticated:', frontend.authenticated
-        assert_true(frontend.connected)
-        assert_true(frontend.authenticated)
-        assert_true(frontend.token)
+        assert_false(frontend.connected)
+        assert_false(frontend.authenticated)
 
         connection = frontend.disconnect()
         assert_false(frontend.authenticated)
@@ -165,20 +165,14 @@ class test_frontend(unittest.TestCase):
         print ''
         print 'test connection with token'
 
-        # print 'token only connection refused ...'
-        # with assert_raises(BackendException) as cm:
-            # print 'authenticated:', frontend.authenticated
-            # connection = frontend.connect(token='anything')
-            # print 'authenticated:', frontend.authenticated
-        # ex = cm.exception # raised exception is available through exception property of context
-        # print 'exception:', str(ex.code)
-        # assert_true(ex.code == 1001, str(ex))
-        # assert_false(frontend.connected)
-        # assert_false(frontend.authenticated)
+        connection = frontend.login('admin', 'admin')
+        assert_true(frontend.authenticated)
+        assert_false(frontend.connected)
+        assert_true(frontend.token)
 
         print 'username/password authentication ...'
         # assert_false(frontend.authenticated)
-        connection = frontend.connect('admin', 'admin')
+        connection = frontend.connect(token=frontend.token)
         print 'authenticated:', frontend.authenticated
         assert_true(frontend.authenticated)
         assert_true(connection)
@@ -190,27 +184,18 @@ class test_frontend(unittest.TestCase):
         assert_false(frontend.authenticated)
         assert_false(connection)
 
-        print 'username/password authentication ...'
-        assert_false(frontend.authenticated)
-        connection = frontend.connect('admin', 'admin')
-        print 'authenticated:', frontend.authenticated
-        assert_true(frontend.authenticated)
-        assert_true(connection)
-
-        print 'token only connection accepted ...'
-        assert_true(frontend.authenticated)
-        connection = frontend.connect(token=frontend.token)
-        print 'authenticated:', frontend.authenticated
-        assert_true(frontend.authenticated)
-        assert_true(connection)
-
     def test_6_all_domains(self):
         print ''
         print 'get all domains'
 
-        # Backend connection
-        connection = frontend.connect('admin', 'admin')
-        assert_true(connection)
+        # Force authentication ...
+        connection = frontend.login('admin', 'admin', force=True)
+        assert_true(frontend.authenticated)
+        assert_true(frontend.token)
+
+        connection = frontend.connect(username='admin')
+        assert_true(frontend.authenticated)
+        assert_true(frontend.connected)
 
         # Get all pages
         print 'get all elements at once'
@@ -230,10 +215,14 @@ class test_frontend(unittest.TestCase):
         print ''
         print 'get all elements on an endpoint'
 
-        # Backend connection
-        connection = frontend.connect('admin', 'admin')
-        print connection
-        assert_true(connection)
+        # Force authentication ...
+        connection = frontend.login('admin', 'admin', force=True)
+        assert_true(frontend.authenticated)
+        assert_true(frontend.token)
+
+        connection = frontend.connect(username='admin')
+        assert_true(frontend.authenticated)
+        assert_true(frontend.connected)
 
         # Get all pages
         print 'get all elements at once'
@@ -264,9 +253,14 @@ class test_frontend(unittest.TestCase):
         print ''
         print 'backend connection with username/password'
 
-        # Backend connection
-        connection = frontend.connect('admin', 'admin')
-        assert_true(connection)
+        # Force authentication ...
+        connection = frontend.login('admin', 'admin', force=True)
+        assert_true(frontend.authenticated)
+        assert_true(frontend.token)
+
+        connection = frontend.connect(username='admin')
+        assert_true(frontend.authenticated)
+        assert_true(frontend.connected)
 
         # Start with first page ...
         last_page = False
@@ -342,17 +336,14 @@ class test_frontend(unittest.TestCase):
         print ''
         print 'test user preferences'
 
-        connection = frontend.login('admin', 'admin')
+        # Force authentication ...
+        connection = frontend.login('admin', 'admin', force=True)
         assert_true(frontend.authenticated)
-        assert_true(frontend.connected)
         assert_true(frontend.token)
 
-        print 'authenticated:', frontend.authenticated
-        connection = frontend.connect('admin', 'admin')
-        print 'authenticated:', frontend.authenticated
-        assert_true(frontend.connected)
+        connection = frontend.connect(username='admin')
         assert_true(frontend.authenticated)
-        assert_true(frontend.token)
+        assert_true(frontend.connected)
 
         parameters = {'a': 1, 'b': '2'}
         response = frontend.set_user_preferences('admin', 'test_prefs', parameters)
@@ -392,9 +383,14 @@ class test_frontend(unittest.TestCase):
         print ''
         print 'get livestate'
 
-        # Backend connection
-        connection = frontend.connect('admin', 'admin')
-        assert_true(connection)
+        # Force authentication ...
+        connection = frontend.login('admin', 'admin', force=True)
+        assert_true(frontend.authenticated)
+        assert_true(frontend.token)
+
+        connection = frontend.connect(username='admin')
+        assert_true(frontend.authenticated)
+        assert_true(frontend.connected)
 
         print 'get livetstate elements'
         items = frontend.get_livestate(parameters=None)
@@ -430,9 +426,14 @@ class test_frontend(unittest.TestCase):
         print ''
         print 'get live synthesis'
 
-        # Backend connection
-        connection = frontend.connect('admin', 'admin')
-        assert_true(connection)
+        # Force authentication ...
+        connection = frontend.login('admin', 'admin', force=True)
+        assert_true(frontend.authenticated)
+        assert_true(frontend.token)
+
+        connection = frontend.connect(username='admin')
+        assert_true(frontend.authenticated)
+        assert_true(frontend.connected)
 
         print 'get live synthesis'
         synthesis = frontend.get_livesynthesis()
