@@ -5,5 +5,6 @@ docopt==0.6.2
 alignak_backend_client
 Flask-Login
 Flask-Assets
+Flask-Classy
 jsmin
 cssmin
