@@ -28,7 +28,6 @@
 
 import os
 import time
-import re
 import traceback
 import logging
 
@@ -296,6 +295,8 @@ class FrontEnd(object):
         :type object_type: str
         :param parameters: list of parameters for the backend API
         :type parameters: list
+        :param all_elements: get all elements (True) or apply default pagination
+        :type all_elements: bool
         :return: list of properties when query item | list of items when get many items
         :rtype: list
         """
@@ -444,195 +445,51 @@ class FrontEnd(object):
                     break
         return fields
 
-    def get_livestate(self, parameters=None):
+    def get_livestate(self, parameters=None, all_elements=True):
         """ Get livestate for hosts and services
 
+            :param parameters: backend request parameters
+            :type parameters: dic
+            :param all_elements: get all elements (True) or apply default pagination
+            :type all_elements: bool
             :return: list of hosts/services live states
             :rtype: list
         """
-        return self.get_objects('livestate', parameters)
+        return self.get_objects('livestate', parameters, all_elements=all_elements)
 
-    def get_livestate_hosts(self, parameters=None):
+    def get_livestate_hosts(self, parameters=None, all_elements=True):
         """ Get livestate for hosts
 
-            Elements in the livestat which service_description is null
+            Elements in the livestat which service_description is null (eg. hosts)
 
+            :param parameters: backend request parameters
+            :type parameters: dic
+            :param all_elements: get all elements (True) or apply default pagination
+            :type all_elements: bool
             :return: list of hosts live states
             :rtype: list
         """
         if not parameters:
             parameters = {}
         parameters.update({'where': '{"service_description": null}'})
-        return self.get_objects('livestate', parameters, all_elements=True)
+        return self.get_objects('livestate', parameters, all_elements=all_elements)
 
-    def get_livestate_services(self, parameters=None):
+    def get_livestate_services(self, parameters=None, all_elements=True):
         """ Get livestate for services
 
-            Elements in the livestat which service_description is not null
+            Elements in the livestat which service_description is not null (eg. services)
 
+            :param parameters: backend request parameters
+            :type parameters: dic
+            :param all_elements: get all elements (True) or apply default pagination
+            :type all_elements: bool
             :return: list of services live states
             :rtype: list
         """
         if not parameters:
             parameters = {}
         parameters.update({'where': '{"service_description": {"$ne": null}}'})
-        return self.get_objects('livestate', parameters, all_elements=True)
-
-    def search_hosts_and_services(self, search, sorter=None):
-        """ Search hosts and services.
-
-            This method is the heart of the datamanager. All other methods should be
-            based on this one.
-
-            :param search: Search string
-            :type search: str
-            :param get_impacts: should impacts be included in the list?
-            :type get_impacts: boolean
-            :param sorter: function to sort the items. default=None (means no sorting)
-            :type sorter: function
-            :return: list of hosts and services
-            :rtype: list
-        """
-        items = []
-        items.extend(self.get_objects('host'), all=True)
-        items.extend(self.get_objects('service'), all=True)
-
-        search = [s for s in search.split(' ')]
-
-        for s in search:
-            s = s.strip()
-            if not s:
-                continue
-
-            elts = s.split(':', 1)
-            t = 'hst_srv'
-            if len(elts) > 1:
-                t = elts[0]
-                s = elts[1]
-
-            s = s.lower()
-            t = t.lower()
-
-            if t == 'hst_srv':
-                pat = re.compile(s, re.IGNORECASE)
-                new_items = []
-                for i in items:
-                    if pat.search(i.get_full_name()):
-                        new_items.append(i)
-                    else:
-                        for j in i.impacts + i.source_problems:
-                            if pat.search(j.get_full_name()):
-                                new_items.append(i)
-
-                if not new_items:
-                    for i in items:
-                        if pat.search(i.output):
-                            new_items.append(i)
-                        else:
-                            for j in i.impacts + i.source_problems:
-                                if pat.search(j.output):
-                                    new_items.append(i)
-
-                items = new_items
-
-            if t == 'type' and s != 'all':
-                items = [i for i in items if i.__class__.my_type == s]
-
-            if t == 'bp' or t == 'bi':
-                if s.startswith('>='):
-                    items = [i for i in items if i.business_impact >= int(s[2:])]
-                elif s.startswith('<='):
-                    items = [i for i in items if i.business_impact <= int(s[2:])]
-                elif s.startswith('>'):
-                    items = [i for i in items if i.business_impact > int(s[1:])]
-                elif s.startswith('<'):
-                    items = [i for i in items if i.business_impact < int(s[1:])]
-                else:
-                    if s.startswith('='):
-                        s = s[1:]
-                    items = [i for i in items if i.business_impact == int(s)]
-
-            if t == 'duration':
-                seconds_per_unit = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
-                times = [(i, time.time() - int(i.last_state_change)) for i in items]
-                try:
-                    if s.startswith('>='):
-                        s = int(s[2:-1]) * seconds_per_unit[s[-1].lower()]
-                        items = [i[0] for i in times if i[1] >= s]
-                    elif s.startswith('<='):
-                        s = int(s[2:-1]) * seconds_per_unit[s[-1].lower()]
-                        items = [i[0] for i in times if i[1] <= s]
-                    elif s.startswith('>'):
-                        s = int(s[1:-1]) * seconds_per_unit[s[-1].lower()]
-                        items = [i[0] for i in times if i[1] > s]
-                    elif s.startswith('<'):
-                        s = int(s[1:-1]) * seconds_per_unit[s[-1].lower()]
-                        items = [i[0] for i in times if i[1] < s]
-                    else:
-                        items = []
-                except Exception:
-                    items = []
-
-            if t == 'is':
-                if s.lower() == 'ack':
-                    items = [i for i in items if (i.__class__.my_type == 'service' or
-                                                  i.problem_has_been_acknowledged)]
-                    items = [i for i in items if (i.__class__.my_type == 'host' or
-                                                  (i.problem_has_been_acknowledged or
-                                                   i.host.problem_has_been_acknowledged))]
-                elif s.lower() == 'downtime':
-                    items = [i for i in items if (i.__class__.my_type == 'service' or
-                                                  i.in_scheduled_downtime)]
-                    items = [i for i in items if (i.__class__.my_type == 'host' or
-                                                  (i.in_scheduled_downtime or
-                                                   i.host.in_scheduled_downtime))]
-                elif s.lower() == 'impact':
-                    items = [i for i in items if i.is_impact]
-                else:
-                    if len(s) == 1:
-                        items = [i for i in items if i.state_id == int(s)]
-                    else:
-                        items = [i for i in items if i.state == s.upper()]
-
-            if t == 'isnot':
-                if s.lower() == 'ack':
-                    items = [i for i in items if (i.__class__.my_type == 'service' or
-                                                  not i.problem_has_been_acknowledged)]
-                    items = [i for i in items if (i.__class__.my_type == 'host' or
-                                                  (not i.problem_has_been_acknowledged and
-                                                   not i.host.problem_has_been_acknowledged))]
-                elif s.lower() == 'downtime':
-                    items = [i for i in items if (i.__class__.my_type == 'service' or
-                                                  not i.in_scheduled_downtime)]
-                    items = [i for i in items if (i.__class__.my_type == 'host' or
-                                                  (not i.in_scheduled_downtime and
-                                                   not i.host.in_scheduled_downtime))]
-                elif s.lower() == 'impact':
-                    items = [i for i in items if not i.is_impact]
-                else:
-                    if len(s) == 1:
-                        items = [i for i in items if i.state_id != int(s)]
-                    else:
-                        items = [i for i in items if i.state != s.upper()]
-
-            # :COMMENT:maethor:150616: Legacy filters, kept for bookmarks compatibility
-            if t == 'ack':
-                if s == 'false' or s == 'no':
-                    search.append("isnot:ack")
-                if s == 'true' or s == 'yes':
-                    search.append("is:ack")
-            if t == 'downtime':
-                if s == 'false' or s == 'no':
-                    search.append("isnot:downtime")
-                if s == 'true' or s == 'yes':
-                    search.append("is:downtime")
-            if t == 'crit':
-                search.append("is:critical")
-
-        if sorter is not None:
-            items.sort(sorter)
-
-        return items
+        return self.get_objects('livestate', parameters, all_elements=all_elements)
 
     def get_livesynthesis(self):
         """ Get livestate synthesis for hosts and services
@@ -663,8 +520,7 @@ class FrontEnd(object):
         :return: hosts live state synthesis
         :rtype: dict
         """
-        parameters = {}
-        parameters["embedded"] = '{"host_name":1}'
+        parameters = {"embedded": '{"host_name":1}'}
         hosts = self.get_livestate_hosts(parameters=parameters)
         if not hosts:
             return None
@@ -712,8 +568,7 @@ class FrontEnd(object):
         :return: services live state synthesis
         :rtype: dict
         """
-        parameters = {}
-        parameters["embedded"] = '{"service_description":1}'
+        parameters = {"embedded": '{"service_description":1}'}
         services = self.get_livestate_services(parameters=parameters)
         if not services:
             return None

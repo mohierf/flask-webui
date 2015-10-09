@@ -25,13 +25,37 @@ Main application views and routes
 # import flask
 from flask import Flask
 from flask import session, redirect, url_for, escape, request, make_response
-from flask import render_template, flash, get_flashed_messages, g
+from flask import render_template, flash, get_flashed_messages, g, jsonify
 from flask_login import login_required, current_user
 
 from alignak_webui import app, manifest, frontend
 from alignak_webui.user import User
 from alignak_webui.utils.helper import helper
 from alignak_webui.datatable import DatatableException
+
+
+@app.route('/ping', methods=['GET'])
+def ping():
+    """ Is server alive? """
+    return 'pong'
+
+
+@app.route('/searching', methods=['POST'])
+def set_search_string():
+    """
+    Set search string ...
+
+    If GET request, display login form
+    If POST request, authenticates user and redirects to index page
+    """
+    # Get configured backend ...
+    # frontend = app.config['frontend']
+
+    helper.search_string = ""
+
+    if request.method == 'POST':
+        helper.search_string = request.form['search_string']
+        app.logger.info("Helper search string: %s", helper.search_string)
 
 
 @app.route('/')
@@ -44,16 +68,29 @@ def index():
     Only authenticated users can see this page
     """
     app.logger.info("show home page ...")
-    app.logger.info("current_user: %s / %s", type(current_user), current_user)
 
     return render_template(
         'home-page.html',
         user=current_user,
         helper=helper,
         manifest=manifest,
-        settings=app.config,
-        ls=frontend.get_livesynthesis()
+        settings=app.config
     )
+
+
+@app.route('/refresh_header')
+@login_required
+def refresh_header():
+    """
+    Refresh application page header
+
+    Update system live synthesis and build header elements
+    """
+    header = {'livesynthesis': helper.get_html_livesynthesis()}
+
+    res = jsonify(**header)
+    res.status_code = 200
+    return res
 
 
 @app.errorhandler(401)

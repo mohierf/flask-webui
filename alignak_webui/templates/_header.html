@@ -14,72 +14,46 @@
 
     <ul class="nav navbar-nav">
         <!-- Page filtering ... -->
-        {# include '_filters.html' #}
+        {% include '_filters.html' %}
     </ul>
 
     <!-- Pop over content ... -->
     <div id="hosts-states-popover-content" class="hidden">
-        <table class="table table-invisible table-condensed"><tbody>
-            <tr>
-                {% with lsh = ls['hosts_synthesis'] %}
-                    {% for state in ["up", "unreachable", "down", "pending", "unknown", "ack", "downtime"] %}
-                        {% set nb = lsh["nb_%s"|format(state)] %}
-                        {% set pct = lsh["pct_%s"|format(state)] %}
-                        {% set label = "<small>%s (%s %%)</small>"|format(nb, pct) %}
-                        {% set disabled = nb==0 %}
-                        <td>
-                            {{ helper.get_state_text("host", state, label=label, disabled=disabled)|safe }}
-                        </td>
-                    {% endfor %}
-                {% endwith %}
-            </tr>
-        </tbody></table>
+        <div class="alert alert-danger">
+            <p class="font-critical">Not yet available!</p>
+        </div>
     </div>
     <div id="services-states-popover-content" class="hidden">
-        <table class="table table-invisible table-condensed"><tbody>
-            <tr>
-                {% with lss = ls['services_synthesis'] %}
-                    {% for state in ["ok", "warning", "critical", "pending", "unknown", "ack", "downtime"] %}
-                        {% set nb = lss["nb_%s"|format(state)] %}
-                        {% set pct = lss["pct_%s"|format(state)] %}
-                        {% set label = "<small>%s (%s %%)</small>"|format(nb, pct) %}
-                        {% set disabled = nb==0 %}
-                        <td>
-                            {{ helper.get_state_text("service", state, label=label, disabled=disabled)|safe }}
-                        </td>
-                    {% endfor %}
-                {% endwith %}
-            </tr>
-        </tbody></table>
+        <div class="alert alert-danger">
+            <p class="font-critical">Not yet available!</p>
+        </div>
     </div>
 
     <div id="navbar-collapse" class="navbar-collapse collapse">
         <!-- Right part ... -->
         <ul class="nav navbar-nav navbar-right">
             <li id="overall-hosts-states">
-                {% with lsh = ls['hosts_synthesis'] %}
-                    {% set nb_problems = lsh['nb_down'] + lsh['nb_unreachable'] %}
-                    {% set label = 'danger' %}
-                    {% set label = 'warning' if lsh['pct_up'] > 0.80 else '' %}
-                    {% set label = 'success' if lsh['pct_up'] > 0.90 else '' %}
-                    <a id="hosts-states-popover" href="/all?search=type:host" data-original-title="Hosts states" data-toggle="popover" title="Overall hosts states, {{lsh['nb_elts']}} hosts, {{ nb_problems }} problems" data-html="true" data-trigger="hover">
-                        <i class="fa fa-server"></i>
-                        <span class="label label-as-badge label-{{label}}">{{ nb_problems }}</span>
-                    </a>
-                {% endwith %}
+                <a href="#"
+                   data-original-title="Hosts states"
+                   data-toggle="popover"
+                   title="Overall hosts states not yet available"
+                   data-html="true"
+                   data-trigger="hover">
+                    <i class="fa fa-server"></i>
+                    <span class="label label-as-badge label-info">-</span>
+                </a>
             </li>
 
             <li id="overall-services-states">
-                {% with lss = ls['services_synthesis'] %}
-                    {% set nb_problems = lss['nb_critical'] + lss['nb_warning'] %}
-                    {% set label = 'danger' %}
-                    {% set label = 'warning' if lss['pct_ok'] > 0.80 else '' %}
-                    {% set label = 'success' if lss['pct_ok'] > 0.90 else '' %}
-                    <a id="services-states-popover" href="/all?search=type:service" data-original-title="Services states" data-toggle="popover popover-services" title="Overall services states, {{lss['nb_elts']}} services, {{ nb_problems }} problems" data-html="true" data-trigger="hover">
-                        <i class="fa fa-bars"></i>
-                        <span class="label label-as-badge label-{{label}}">{{ nb_problems }}</span>
-                    </a>
-                {% endwith %}
+                <a href="#"
+                   data-original-title="Services states"
+                   data-toggle="popover popover-services"
+                   title="Overall services states not yet available"
+                   data-html="true"
+                   data-trigger="hover">
+                    <i class="fa fa-bars"></i>
+                    <span class="label label-as-badge label-info">-</span>
+                </a>
             </li>
 
             {% if settings.get('ui.one_eye', 'false') != "false" %}

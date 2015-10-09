@@ -75,6 +75,8 @@ class basic_tests(unittest.TestCase):
         # Configure users' management backend
         User.set_backend(frontend)
 
+        helper = Helper(alignak_webui.app)
+
         self.app = alignak_webui.app.test_client()
 
     def tearDown(self):
@@ -89,6 +91,13 @@ class basic_tests(unittest.TestCase):
 
     def logout(self):
         return self.app.get('/logout', follow_redirects=True)
+
+    def test_1_ping_pong(self):
+        print ''
+        print 'ping/pong server alive'
+
+        rv = self.app.get('/ping')
+        assert 'pong' in rv.data
 
     def test_2_login(self):
         print ''
@@ -120,8 +129,12 @@ class basic_tests(unittest.TestCase):
             print 'admin:', current_user.can_admin()
             print 'action:', current_user.can_action()
 
-            print 'refresh home page'
+            print 'reload home page'
             rv = self.app.get('/')
+            assert '<title>Home page</title>' in rv.data
+
+            print 'reload home page'
+            rv = self.app.get('/index')
             assert '<title>Home page</title>' in rv.data
 
             print 'logout - go to login page'

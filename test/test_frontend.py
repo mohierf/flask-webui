@@ -397,12 +397,18 @@ class test_frontend(unittest.TestCase):
         print "Got %d elements" % (len(items))
         print items
 
+        print 'get livetstate registered elements'
+        parameters = { 'where': '{"register":true}' }
+        items = frontend.get_livestate(parameters=parameters)
+        print "Got %d elements" % (len(items))
+        print items
+
         print 'get livetstate hosts'
         items = frontend.get_livestate_hosts(parameters=None)
         print "Got %d elements" % (len(items))
         print items[0]
 
-        print 'get livetstate hosts'
+        print 'get livetstate registered hosts'
         parameters = { 'where': '{"register":true}' }
         items = frontend.get_livestate_hosts(parameters=parameters)
         print "Got %d elements" % (len(items))
@@ -414,7 +420,7 @@ class test_frontend(unittest.TestCase):
         print "Got %d elements" % (len(items))
         print items[0]
 
-        print 'get livetstate services'
+        print 'get livetstate registered services'
         items = frontend.get_livestate_services(parameters=None)
         print "Got %d elements" % (len(items))
         print items[0]
@@ -453,5 +459,5 @@ class test_frontend(unittest.TestCase):
         print synthesis
         assert_true('nb_elts' in synthesis)
 
-        # Backend connection
+        # Backend disconnection
         frontend.disconnect()

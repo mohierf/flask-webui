@@ -55,6 +55,9 @@ def setup_module(module):
     )
     plugins.load_plugins(plugins_dir)
 
+    helper = Helper(alignak_webui.app)
+
+
 def teardown_module(module):
     print ("") # this is to get a newline after the dots
     print ("teardown_module after everything in this file")
@@ -64,7 +67,7 @@ def teardown_module(module):
 
 
 import alignak_webui
-from alignak_webui import app, frontend, manifest, settings
+from alignak_webui import app, frontend, manifest, settings, helper
 from alignak_webui.backend import FrontEnd, BackendException
 from alignak_webui import views
 from alignak_webui.user import User
@@ -93,6 +96,7 @@ class test_datatable(unittest.TestCase):
         ), follow_redirects=True)
 
         self.object_type='host'
+        print helper
 
     def tearDown(self):
         print 'teardown ...'
@@ -186,7 +190,6 @@ class test_datatable(unittest.TestCase):
         ok_('b' in json_data)
         ok_(json_data['b'] == '2')
 
-
     def test_3(self):
         # Get hosts data
         # Max results
@@ -194,9 +197,13 @@ class test_datatable(unittest.TestCase):
         rv = self.app.get('/hosts')
         ok_(rv.status_code == 200)
         ok_(rv.status == '200 OK')
-        # ok_(rv.data == '')
-        print "Data: %s" % (rv.data)
         ok_("$('#tbl_host').DataTable" in rv.data)
+
+        print 'get services table ...'
+        rv = self.app.get('/services')
+        ok_(rv.status_code == 200)
+        ok_(rv.status == '200 OK')
+        ok_("$('#tbl_service').DataTable" in rv.data)
 
         # Get hosts data
         # Max results and projection

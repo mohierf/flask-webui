@@ -55,26 +55,6 @@ $(document).ready(function(){
 
    // Actions bar menu
    $('#actions-menu').metisMenu();
-
-   // Activate the header popover ...
-   $('#hosts-states-popover').popover({
-      placement: 'bottom',
-      animation: true,
-      template: '<div class="popover img-popover"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content"></div></div></div>',
-      content: function() {
-         return $('#hosts-states-popover-content').html();
-      }
-   });
-
-   // Activate the popover ...
-   $('#services-states-popover').popover({
-      placement: 'bottom',
-      animation: true,
-      template: '<div class="popover img-popover"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content"></div></div></div>',
-      content: function() {
-         return $('#services-states-popover-content').html();
-      }
-   });
 });
 
 // Play alerting sound ...

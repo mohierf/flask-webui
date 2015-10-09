@@ -30,6 +30,7 @@ import copy
 import math
 import operator
 import re
+import itertools
 
 import json
 from logging import getLogger
@@ -57,32 +58,36 @@ class Helper(object):
         'FLAPPING', 'ACK', 'DOWNTIME'
     ]
 
+    search_name = None
+    search_string = None
+
     def __init__(self, application):
-        """To be checked"""
+        """Store application reference"""
         self.app = application
+        self.livestate = None
 
     @staticmethod
-    def print_date(t, fmt='%Y-%m-%d %H:%M:%S'):
+    def print_date(timestamp, fmt='%Y-%m-%d %H:%M:%S'):
         """
         For a unix timestamp return something like
         2015-09-18 00:00:00
 
         Returns n/a if provided timestamp is not valid
 
-        :param t: unix timestamp
-        :type t: long int
+        :param timestamp: unix timestamp
+        :type timestamp: long int
         :param fmt: python date/time format string
         :type fmt: sting
         :return: formatted date
         :rtype: string
         """
-        if not t:
+        if not timestamp:
             return 'n/a'
 
-        return time.strftime(fmt, time.localtime(t))
+        return time.strftime(fmt, time.localtime(timestamp))
 
     @staticmethod
-    def print_duration(t, duration_only=False, x_elts=0):
+    def print_duration(timestamp, duration_only=False, x_elts=0):
         """
         For a unix timestamp return something like
         1h 15m 12s
@@ -96,18 +101,18 @@ class Helper(object):
 
         Returns 1h 15m 12s if only_duration is True
 
-        :param t: unix timestamp
-        :type t: long int
+        :param timestamp: unix timestamp
+        :type timestamp: long int
         :param fmt: python date/time format string
         :type fmt: sting
         :return: formatted date
         :rtype: string
         """
-        if not t:
+        if not timestamp:
             return 'n/a'
 
         # Get the difference between now and the time of the user
-        seconds = int(time.time()) - int(t)
+        seconds = int(time.time()) - int(timestamp)
 
         # If it's now, say it :)
         if seconds == 0:
@@ -168,7 +173,7 @@ class Helper(object):
         else:
             return ' '.join(duration) + ' ago'
 
-    def get_business_impact_text(self, business_impact, icon=True, text=True):
+    def get_html_business_impact(self, business_impact, icon=True, text=True):
         """
         Returns a business impact as HTML text and icon if needed
 
@@ -212,7 +217,7 @@ class Helper(object):
 
         return result
 
-    def get_state_text(self, obj_type, state, extra='',
+    def get_html_state(self, obj_type, state, extra='',
                        icon=True, text=False, label='', disabled=False):
         """
         Returns an host/Service state as HTML text and icon if needed
@@ -353,7 +358,29 @@ class Helper(object):
 
         return res_icon
 
-    def get_url(self, obj_type, name, label=None, title=None):
+    def get_html_id(self, obj_type, name):
+        """
+        Returns an host/service/contact ... HTML identifier
+
+        If parameters are not valid, returns 'n/a'
+
+        obj_type specifies object type
+        name specifes the object name
+
+        :param obj_type: host, service, contact
+        :type obj_type: string
+        :param name: object name
+        :type name: string
+
+        :return: valid HTML identifier
+        :rtype: string
+        """
+        if not obj_type or not name:
+            return 'n/a'
+
+        return re.sub('[^A-Za-z0-9-_]', '', "%s-%s" % (obj_type, name))
+
+    def get_html_url(self, obj_type, name, label=None, title=None):
         """
         Returns an host/service/contact ... url
 
@@ -381,6 +408,341 @@ class Helper(object):
             title if title else name,
             label if label else name
         )
+
+    def get_livestate(self, parameters=None):
+        """
+        Get live state from backend
+
+        Live state is a list of items with those fields:
+        {
+            u'host_name': u'56080340f9e3858df8c5f5d5',
+            u'service_description': u'56080343f9e3858df8c5f67f',
+            u'acknowledged': False,
+            u'last_check': 1443375659,
+            u'state_type': u'HARD',
+            u'state': u'OK',
+            u'output': u'...',
+            u'long_output': u'...',
+            u'perf_data': u'...'
+            u'_created': u'Sun, 27 Sep 2015 15:14:04 GMT',
+            u'_updated': u'Sun, 27 Sep 2015 17:41:02 GMT',
+            u'_id': u'560807bcf9e38523556deffe',
+            u'_etag': u'c9ce5d09248a41c1061bd1b416c5f2dba247d50d',
+            u'_links': {
+                u'self': {
+                    u'href': u'livestate/560807bcf9e38523556deffe', u'title': u'Livestate'
+                }
+            },
+        }
+
+        host_name and service_description fields are embedded. Those fields are dictionaries of
+        fields describing an host and a service.
+
+        :return: list of livestate elements
+        :rtype: list
+        """
+        if not parameters:
+            parameters = {}
+
+        if "embedded" not in parameters:
+            parameters.update({"embedded": '{"host_name": 1, "service_description": 1}'})
+        if "sort" not in parameters:
+            parameters.update({"sort": 'host_name, service_description'})
+
+        self.livestate = frontend.get_livestate(parameters=parameters)
+        hosts_ids = {}
+        for item in self.livestate:
+            if not item['service_description']:
+                item['type'] = 'host'
+                item['id'] = item['host_name']['host_name']
+                item['bi'] = int(item['host_name']['business_impact'])
+                item['name'] = item['host_name']['host_name']
+                item['friendly_name'] = ""
+                if 'alias' in item['host_name']:
+                    if item['host_name']['alias']:
+                        item['friendly_name'] = item['host_name']['alias']
+                if 'display_name' in item['host_name']:
+                    if item['host_name']['display_name']:
+                        item['friendly_name'] = item['host_name']['display_name']
+
+                if not item['host_name']['_id'] in hosts_ids:
+                    hosts_ids[item['host_name']['_id']] = item['host_name']['host_name']
+
+        for item in self.livestate:
+            if item['service_description']:
+                item['type'] = 'service'
+                item['id'] = item['service_description']['service_description']
+                item['bi'] = int(item['service_description']['business_impact'])
+                item['name'] = "%s/%s" % (
+                    hosts_ids[item['service_description']['host_name']],
+                    item['service_description']['service_description']
+                )
+                item['friendly_name'] = ""
+                if 'alias' in item['service_description']:
+                    if item['service_description']['alias']:
+                        item['friendly_name'] = item['service_description']['alias']
+                if 'display_name' in item['service_description']:
+                    if item['service_description']['display_name']:
+                        item['friendly_name'] = item['service_description']['display_name']
+
+        return self.livestate
+
+    def get_livesynthesis(self):
+        """Get live synthesis from backend"""
+        return frontend.get_livesynthesis()
+
+    def get_html_livesynthesis(self):
+        """
+        Get HTML formatted live sythesis
+
+        Update system live synthesis and build header elements
+
+        :return: hosts_states and services_states HTML strings in a dictionary
+        :rtype: dict
+        """
+        ls = self.get_livesynthesis()
+
+        hosts_states_popover = ''
+        nb_problems = 0
+        lsh = ls['hosts_synthesis']
+        for state in itertools.chain(Helper.host_states, Helper.extra_host_states):
+            try:
+                nb = int(lsh["nb_%s" % state.lower()])
+                if state in ['DOWN', 'UNREACHABLE']:
+                    nb_problems += nb
+                pct = float(lsh["pct_%s" % state.lower()])
+                label = "<small>%d (%s %%)</small>" % (nb, pct)
+                hosts_states_popover += '<td data-state="%s" data-count="%d">%s</td>' % (
+                    state.lower(),
+                    nb,
+                    helper.get_html_state(
+                        "host", state.lower(), label=label, disabled=nb
+                    )
+                )
+            except KeyError:
+                continue
+
+        hosts_states_popover = """<table class="table table-invisible table-condensed"><tbody>
+            <tr data-count="%d" data-problems="%d">%s</tr>
+            </tbody></table>""" % (int(lsh["nb_elts"]), nb_problems, hosts_states_popover)
+
+        hosts_state = """
+            <a tabindex="0" role="button" title="Overall hosts states, %d hosts, %d problems">
+                <i class="fa fa-server"></i>
+                <span class="label label-as-badge label-%s">%d</span>
+            </a>
+            """ % (int(lsh["nb_elts"]), nb_problems, "success", nb_problems)
+
+        services_states_popover = ''
+        nb_problems = 0
+        lss = ls['services_synthesis']
+        for state in itertools.chain(Helper.service_states, Helper.extra_service_states):
+            try:
+                nb = int(lss["nb_%s" % state.lower()])
+                if state in ['WARNING', 'CRITICAL']:
+                    nb_problems += nb
+                pct = float(lss["pct_%s" % state.lower()])
+                label = "<small>%s (%s %%)</small>" % (nb, pct)
+                services_states_popover += '<td data-state="%s" data-count="%d">%s</td>' % (
+                    state.lower(),
+                    nb,
+                    helper.get_html_state(
+                        "service", state.lower(), label=label, disabled=nb
+                    )
+                )
+            except KeyError:
+                continue
+
+        services_states_popover = """
+            <table class="table table-invisible table-condensed"><tbody>
+            <tr data-count="%d" data-problems="%d">%s</tr>
+            </tbody></table>
+            """ % (int(lss["nb_elts"]), nb_problems, services_states_popover)
+
+        services_state = """
+            <a tabindex="0" role="button" title="Overall services states, %d services, %d problems">
+                <i class="fa fa-bars"></i>
+                <span class="label label-as-badge label-%s">%d</span>
+            </a>
+            """ % (int(lss["nb_elts"]), nb_problems, "success", nb_problems)
+
+        return {
+            'hosts_states_popover': hosts_states_popover,
+            'services_states_popover': services_states_popover,
+            'hosts_state': hosts_state,
+            'services_state': services_state
+        }
+
+    def search_hosts_and_services(self, search, sorter=None):
+        """ Search hosts and services.
+
+            This method is the heart of the datamanager. All other methods should be
+            based on this one.
+
+            :param search: Search string
+            :type search: str
+            :param get_impacts: should impacts be included in the list?
+            :type get_impacts: boolean
+            :param sorter: function to sort the items. default=None (means no sorting)
+            :type sorter: function
+            :return: list of hosts and services
+            :rtype: list
+        """
+        logger.debug("searching, pattern: %s", search)
+
+        if not self.livestate:
+            self.livestate = self.get_livestate()
+
+        items = self.livestate
+        if not items:
+            logger.warning("searching, livestate is empty")
+            return None
+        logger.debug("searching, livestate: %d items", len(items))
+
+        search_patterns = [s for s in search.split(' ')]
+
+        for pattern in search_patterns:
+            pattern = pattern.strip()
+            if not pattern:
+                continue
+
+            search_type = 'search_name'
+            parameter = pattern
+            elts = pattern.split(':', 1)
+            if len(elts) > 1:
+                search_type = elts[0]
+                parameter = elts[1].lower()
+
+            search_type = search_type.lower()
+            logger.debug("searching, search type: '%s', parameter: '%s'", search_type, parameter)
+
+            if search_type == 'search_name':
+                pat_regex = re.compile(parameter, re.IGNORECASE)
+                new_items = []
+                # Search pattern in elements name ...
+                for item in items:
+                    if pat_regex.search(item['name']):
+                        new_items.append(item)
+                logger.debug(
+                    "searching, name contains: %s, found %d elements",
+                    parameter, len(new_items)
+                )
+
+                # ... else search pattern in livestate output
+                if not new_items:
+                    for item in items:
+                        if (pat_regex.search(item['output']) or
+                                pat_regex.search(item['long_output'])):
+                            new_items.append(item)
+                    logger.debug(
+                        "searching, output contains: %s, found %d elements",
+                        parameter, len(new_items)
+                    )
+
+                # ... should search pattern in some other fields ?
+
+                items = new_items
+
+            if search_type == 'type':
+                if parameter == 'host':
+                    items = [item for item in items if item['type'] == 'host']
+                elif parameter == 'service':
+                    items = [item for item in items if item['type'] == 'service']
+                elif parameter != 'all':
+                    logger.warning("searching type parameter is not recognized: %s", parameter)
+                    continue
+                logger.debug(
+                    "searching, element type: %s, found %d elements",
+                    parameter, len(items)
+                )
+
+            if search_type == 'bp' or search_type == 'bi':
+                logger.debug("searching, business impact: %s", parameter)
+                if parameter.startswith('>='):
+                    items = [item for item in items if item['bi'] >= int(parameter[2:])]
+                elif parameter.startswith('<='):
+                    items = [item for item in items if item['bi'] <= int(parameter[2:])]
+                elif parameter.startswith('>'):
+                    items = [item for item in items if item['bi'] > int(parameter[1:])]
+                elif parameter.startswith('<'):
+                    items = [item for item in items if item['bi'] < int(parameter[1:])]
+                elif parameter.startswith('='):
+                    parameter = parameter[1:]
+                elif parameter.isdigit():
+                    items = [item for item in items if item['bi'] == int(parameter)]
+                logger.debug(
+                    "searching, business impact: %s, found %d elements",
+                    parameter, len(items)
+                )
+
+            if search_type == 'is':
+                if parameter.lower() == 'ack':
+                    items = [item for item in items if item['acknowledged']]
+                elif parameter.lower() == 'downtime':
+                    items = [item for item in items if item['in_scheduled_downtime']]
+                elif parameter.lower() == 'impact':
+                    items = [item for item in items if item['is_impact']]
+                else:
+                    if parameter.isdigit():
+                        items = [
+                            item for item in items if
+                            item['state'] == Helper.host_states[int(parameter)]
+                        ]
+                    else:
+                        items = [
+                            item for item in items if item['state'] == parameter.upper()
+                        ]
+                logger.debug(
+                    "searching, %s:%s, found %d elements",
+                    search_type, parameter, len(items)
+                )
+
+            if search_type == 'isnot':
+                if parameter.lower() == 'ack':
+                    items = [item for item in items if not item['acknowledged']]
+                elif parameter.lower() == 'downtime':
+                    items = [item for item in items if not item['in_scheduled_downtime']]
+                elif parameter.lower() == 'impact':
+                    items = [item for item in items if not item['is_impact']]
+                else:
+                    if parameter.isdigit():
+                        items = [
+                            item for item in items if
+                            item['state'] != Helper.host_states[int(parameter)]
+                        ]
+                    else:
+                        items = [
+                            item for item in items if item['state'] != parameter.upper()
+                        ]
+                logger.debug(
+                    "searching, %s:%s, found %d elements",
+                    search_type, parameter, len(items)
+                )
+
+            # Search shortcuts
+            if search_type == 'host':
+                search_patterns.append("type:host")
+            if search_type == 'service':
+                search_patterns.append("type:service")
+            if search_type == 'ack':
+                if parameter == 'false' or parameter == 'no' or parameter == '0':
+                    search_patterns.append("isnot:ack")
+                if parameter == 'true' or parameter == 'yes' or parameter == '1':
+                    search_patterns.append("is:ack")
+            if search_type == 'downtime':
+                if parameter == 'false' or parameter == 'no' or parameter == '0':
+                    search_patterns.append("isnot:downtime")
+                if parameter == 'true' or parameter == 'yes' or parameter == '1':
+                    search_patterns.append("is:downtime")
+            if search_type in Helper.host_states or search_type in Helper.extra_host_states:
+                search_patterns.append("is:%s" % search_type)
+            if search_type in Helper.service_states or search_type in Helper.extra_service_states:
+                search_patterns.append("is:%s" % search_type)
+
+        if sorter is not None:
+            items.sort(sorter)
+
+        return items
 
 # Prepare helper object
 helper = Helper(app)

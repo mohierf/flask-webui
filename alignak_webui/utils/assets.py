@@ -51,6 +51,8 @@ bundles = {
         'js/application.js',
         'js/jquery.bxslider.min.js',
         'js/Chart.min.js',
+        'js/alertify.js',
+        'js/page-refresh.js',
         output='page-app.js',
         filters='jsmin'),
 
@@ -61,6 +63,7 @@ bundles = {
         'css/metisMenu.min.css',
         'css/jquery.bxslider.css',
         'css/application.css',
+        'css/alertify.css',
         output='page-app.css',
         filters=['cssrewrite', 'cssmin'])
 }

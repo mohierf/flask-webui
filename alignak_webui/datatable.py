@@ -32,7 +32,8 @@
 """
 import json
 from logging import getLogger
-from alignak_webui import app, manifest, frontend, helper
+from alignak_webui import app, manifest, frontend
+from alignak_webui.utils.helper import helper
 from flask import request, abort, make_response, render_template
 from flask import jsonify
 from flask_login import current_user
@@ -60,7 +61,7 @@ class DatatableException(Exception):
 
     def __str__(self):
         """Exception to String"""
-        return "Backend error code %d: %s" % (self.code, self.message)
+        return "Datatble error code %d: %s" % (self.code, self.message)
 
 
 class Datatable(object):
@@ -287,87 +288,70 @@ class Datatable(object):
         """
         Request for elements list
 
+        Returns an HTML page containing filtered elements for an object_type (displays host,
+        service, contact, ...) formatted in a jQuery datatable.
+
         1/ request for data model objects definition
         2/ get main information for objects:
             - list page title,
             - ...
-        3/ filter to retain only fields that are UI visible
+        3/ filter to retain only fields that are managed in the UI
 
         """
         logger.debug("request for %s list ...", self.object_type)
 
         # Data model ...
-        fields_list = []
         table_columns = []
         ui_dm = {"title": "All %s (XXX items)" % self.object_type}
         fields = frontend.get_ui_data_model(self.object_type)
-        if fields:
-            # Objects are considered in the UI
-            for field in fields:
-                logger.debug("%s field: %s", self.object_type, field)
-                if field["name"] == "ui":
-                    ui_dm["title"] = field["ui"]["title"]
-                    continue
+        if not fields:
+            raise DatatableException(450, "table, trying to get table data for unmanaged data")
 
-                if 'ui' in field and 'visible' in field['ui'] and field["ui"]["visible"]:
-                    field_default = ""
-                    if 'default' in field:
-                        field_default = field["default"]
-                    field_title = field["name"]
-                    if 'title' in field['ui']:
-                        field_title = field["ui"]["title"]
-                    fields_list.append({
-                        "name": field["name"],
-                        "title": field_title,
-                        "default": field_default,
-                        "orderable": field["ui"]["orderable"],
-                        "searchable": field["ui"]["searchable"],
-                        "type": field["type"]
-                    })
-                    table_columns.append({
-                        "name": field["name"],
-                        "title": field_title,
-                        "defaultContent": field_default,
-                        "type": field['type'],
-                        "orderable": field["ui"]["orderable"],
-                        "searchable": field["ui"]["searchable"],
-                        "data": field['name']
-                    })
+        # Objects are considered in the UI
+        for field in fields:
+            logger.debug("%s field: %s", self.object_type, field)
+            if field["name"] == "ui":
+                ui_dm["title"] = field["ui"]["title"]
+                continue
 
-            fields_list.sort(key=lambda field: field['name'])
+            if 'ui' in field and 'visible' in field['ui'] and field["ui"]["visible"]:
+                # Ensuring data model is clean will avoid those tests ...
+                field_default = ""
+                if 'default' in field:
+                    field_default = field["default"]
+                field_title = field["name"]
+                if 'title' in field['ui']:
+                    field_title = field["ui"]["title"]
+                table_columns.append({
+                    "name": field["name"],
+                    "title": field_title,
+                    "defaultContent": field_default,
+                    "type": field['type'],
+                    "orderable": field["ui"]["orderable"],
+                    "searchable": field["ui"]["searchable"],
+                    "data": field['name']
+                })
 
-            resp = frontend.get_objects(self.object_type)
+        table_columns.sort(key=lambda field: field['name'])
 
-            # Update title with number of elements
-            if '%d' in ui_dm["title"]:
-                ui_dm["title"] = ui_dm["title"] % len(resp['_items'])
+        resp = frontend.get_objects(self.object_type)
 
-            return render_template(
-                'list.html',
-                user=current_user,
-                helper=helper,
-                manifest=manifest,
-                settings=app.config,
-                object_type=self.object_type,
-                ui_dm=ui_dm,
-                ls=frontend.get_livesynthesis(),
-                fields_list=fields_list,
-                columns=table_columns,
-                json_columns=json.dumps(table_columns),
-                list=resp['_items']
-            )
-        else:
-            return render_template(
-                'list.html',
-                user=current_user,
-                helper=helper,
-                manifest=manifest,
-                settings=app.config,
-                ui_dm=ui_dm,
-                ls=frontend.get_livesynthesis(),
-                fields_list=fields_list,
-                list=[]
-            )
+        # Update title with number of elements
+        if '%d' in ui_dm["title"]:
+            ui_dm["title"] = ui_dm["title"] % len(resp['_items'])
+
+        return render_template(
+            'list.html',
+            user=current_user,
+            helper=helper,
+            manifest=manifest,
+            settings=app.config,
+            object_type=self.object_type,
+            title=ui_dm["title"],
+            columns=table_columns,
+            json_columns=json.dumps(table_columns),
+            list=resp['_items']
+        )
 
     def page(self, name='unknown'):
         """
