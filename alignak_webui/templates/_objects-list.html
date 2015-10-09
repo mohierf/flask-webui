@@ -17,17 +17,10 @@
 {% endblock %}
 
 
-{% block title %}{{ ui_dm["title"] }}{% endblock %}
+{% block title %}{{ title }}{% endblock %}
 
 {% block body %}
-    {% if ui_dm["title"] %}
-    <h1>{{ ui_dm["title"] }}</h1>
-    {% endif %}
-    {% if ui_dm["subtitle"] %}
-    <h2>{{ ui_dm["subtitle"] }}</h2>
-    {% endif %}
-
-    <hr/>
+    <h1>{{ title }}</h1>
 
     {% if not list %}
         <div class="alert alert-info">
