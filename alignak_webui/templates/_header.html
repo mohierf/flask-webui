@@ -121,6 +121,7 @@
 var app_refresh_period = {{ settings.get('ui.refresh_rate', 60) }};
 </script>
 {% endif %}
+
 {% if settings.get('ui.play_sound', 'false') != "false" %}
 <audio id="alert-sound" volume="1.0">
    <source src="/static/sound/alert.wav" type="audio/wav">

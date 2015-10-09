@@ -342,10 +342,6 @@ class Datatable(object):
 
         return render_template(
             'list.html',
-            user=current_user,
-            helper=helper,
-            manifest=manifest,
-            settings=app.config,
             object_type=self.object_type,
             title=ui_dm["title"],
             columns=table_columns,

@@ -34,13 +34,31 @@ from alignak_webui.utils.helper import helper
 from alignak_webui.datatable import DatatableException
 
 
+@app.context_processor
+def inject_variables():
+    """
+        All templates rendered in the application will automatically inherit from all the variables
+        defined in the returned dictionary:
+        - user is the current logged in user
+        - helper is an instance of Helper class
+        - manifest is the application information dictionary
+        - settings is the current application configuration
+    """
+    return dict(
+        user=current_user,
+        helper=helper,
+        manifest=manifest,
+        settings=app.config
+    )
+
+
 @app.route('/ping', methods=['GET'])
 def ping():
     """ Is server alive? """
     return 'pong'
 
 
-@app.route('/searching', methods=['POST'])
+@app.route('/search_string', methods=['GET', 'POST'])
 def set_search_string():
     """
     Set search string ...
@@ -57,6 +75,8 @@ def set_search_string():
         helper.search_string = request.form['search_string']
         app.logger.info("Helper search string: %s", helper.search_string)
 
+    return helper.search_string
+
 
 @app.route('/')
 @app.route('/index')
@@ -70,11 +90,7 @@ def index():
     app.logger.info("show home page ...")
 
     return render_template(
-        'home-page.html',
-        user=current_user,
-        helper=helper,
-        manifest=manifest,
-        settings=app.config
+        'home-page.html'
     )
 
 
@@ -86,9 +102,24 @@ def refresh_header():
 
     Update system live synthesis and build header elements
     """
-    header = {'livesynthesis': helper.get_html_livesynthesis()}
+    data = {'livesynthesis': helper.get_html_livesynthesis()}
 
-    res = jsonify(**header)
+    res = jsonify(**data)
+    res.status_code = 200
+    return res
+
+
+@app.route('/refresh_livestate')
+@login_required
+def refresh_livestate():
+    """
+    Refresh application livestate
+
+    Update system live state and build header elements
+    """
+    data = {'livestate': helper.get_html_livestate(request.args.get('bi', 0),)}
+
+    res = jsonify(**data)
     res.status_code = 200
     return res
 

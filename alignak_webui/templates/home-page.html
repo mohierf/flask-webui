@@ -3,7 +3,6 @@
 {% extends "layout.html" %}
 {% block title %}Home page{% endblock %}
 {% block body %}
-    {{ super() }}
     {% if settings.get('layout.graph', 'false') != "false" %}
     <div class="row">
         <h2 class="page-header">System status</h2>
@@ -170,7 +169,7 @@
     </script>
     {% endif %}
 
-    <div class="row" id="to_refresh">
-    {% include '_problems-list.html' %}
+    <div class="row" id="livestate">
+    {% include '_livestate-list.html' %}
     </div>
 {% endblock %}

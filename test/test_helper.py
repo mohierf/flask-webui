@@ -70,7 +70,7 @@ class test_helper(unittest.TestCase):
         print "tearing down ..."
 
 
-    def test_1_print_date(self):
+    def test_01_print_date(self):
         print "---"
 
         now = time.time()
@@ -95,7 +95,7 @@ class test_helper(unittest.TestCase):
         s = self.helper.print_date(now, fmt='%H:%M:%S')
         print "Result:", s
 
-    def test_2_print_duration(self):
+    def test_02_print_duration(self):
         print "---"
 
         now = time.time()
@@ -210,7 +210,7 @@ class test_helper(unittest.TestCase):
         print "Result:", s
         self.assert_(s == 'in 2M 2w')
 
-    def test_3_get_business_impact_text(self):
+    def test_03_get_business_impact_text(self):
         print "---"
 
         # Parameters errors
@@ -292,7 +292,7 @@ class test_helper(unittest.TestCase):
         self.assert_(s == 'Very important')
         s = self.helper.get_html_business_impact(5, icon=False)
 
-    def test_4_get_state_text(self):
+    def test_04_get_state_text(self):
         print "---"
 
         print "Parameters errors:"
@@ -324,7 +324,7 @@ class test_helper(unittest.TestCase):
         print "Result:", s
         self.assert_(s == 'n/a')
 
-    def test_5_get_host_state_text(self):
+    def test_05_get_host_state_text(self):
         print "---"
 
         # Host, icon only (default) ...
@@ -414,7 +414,7 @@ class test_helper(unittest.TestCase):
         print "Result:", s
         self.assert_(s == '<span class="font-DOWN"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN and in scheduled downtime"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is DOWN and in scheduled downtime</span></span>')
 
-    def test_6_get_service_state_text(self):
+    def test_06_get_service_state_text(self):
         print "---"
 
         # service, icon only (default) ...
@@ -514,7 +514,7 @@ class test_helper(unittest.TestCase):
         print "Result:", s
         self.assert_(s == '<span class="font-OK"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-greyed"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><span>My own label</span></span>')
 
-    def test_7_get_url(self):
+    def test_07_get_url(self):
         print "---"
 
         print "Parameters errors:"
@@ -550,56 +550,39 @@ class test_helper(unittest.TestCase):
         print "Result:", s
         self.assert_(s == '<a href="/contact/bob" title="bob">My label ...</a>')
 
-    def test_8_livestate(self):
+    def test_08_get_id(self):
         print "---"
 
-        # Initialize backend communication ...
-        frontend.configure(alignak_webui.app.config.get('ui.backend', 'http://localhost:5000'))
-        print "Frontend: %s", frontend.url_endpoint_root
-
-        # Configure users' management backend
-        User.set_backend(frontend)
-
-        # Force authentication ...
-        connection = frontend.login('admin', 'admin', force=True)
-        assert_true(frontend.authenticated)
-        assert_true(frontend.token)
-
-        connection = frontend.connect(username='admin')
-        assert_true(frontend.authenticated)
-        assert_true(frontend.connected)
-
-        print "Get live synthesis ..."
-        synthesis = self.helper.get_livesynthesis()
-        print "Result:", synthesis
-        assert_true('hosts_synthesis' in synthesis)
-        assert_true('nb_elts' in synthesis['hosts_synthesis'])
-        assert_true('services_synthesis' in synthesis)
-        assert_true('nb_elts' in synthesis['services_synthesis'])
-
-        print "Get HTML live synthesis ..."
-        synthesis = self.helper.get_html_livesynthesis()
-        print "Result:", synthesis
-        assert 'hosts_states_popover' in synthesis
-        assert 'host state is UP' in synthesis['hosts_states_popover']
-        assert 'host state is DOWN' in synthesis['hosts_states_popover']
-        assert 'host state is UNREACHABLE' in synthesis['hosts_states_popover']
-        assert 'hosts_state' in synthesis
-
-        assert 'services_states_popover' in synthesis
-        assert 'service state is OK' in synthesis['services_states_popover']
-        assert 'service state is WARNING' in synthesis['services_states_popover']
-        assert 'service state is CRITICAL' in synthesis['services_states_popover']
-        assert 'services_state' in synthesis
-
-        print "Get live state ..."
-        s = self.helper.get_livestate()
+        print "Parameters errors:"
+        s = self.helper.get_html_id(None, None)
         print "Result:", s
+        self.assert_(s == 'n/a')
 
-        # Backend disconnection
-        frontend.disconnect()
+        s = self.helper.get_html_id('', '')
+        print "Result:", s
+        self.assert_(s == 'n/a')
 
-    def test_9_search(self):
+        s = self.helper.get_html_id('host', None)
+        print "Result:", s
+        self.assert_(s == 'n/a')
+
+        s = self.helper.get_html_id('bad_type', 'bad')
+        print "Result:", s
+        self.assert_(s == 'bad_type-bad')
+
+        s = self.helper.get_html_id('host', 'host1')
+        print "Result:", s
+        self.assert_(s == 'host-host1')
+
+        s = self.helper.get_html_id('service', 'service1')
+        print "Result:", s
+        self.assert_(s == 'service-service1')
+
+        s = self.helper.get_html_id('host', 'test*/-_+)')
+        print "Result:", s
+        self.assert_(s == 'host-test-_')
+
+    def test_09_search(self):
         print "---"
 
         # Initialize backend communication ...
@@ -794,34 +777,96 @@ class test_helper(unittest.TestCase):
         # Backend disconnection
         frontend.disconnect()
 
-    def test_10_get_id(self):
+    def test_10_livesynthesis(self):
         print "---"
 
-        print "Parameters errors:"
-        s = self.helper.get_html_id(None, None)
-        print "Result:", s
-        self.assert_(s == 'n/a')
+        # Initialize backend communication ...
+        frontend.configure(alignak_webui.app.config.get('ui.backend', 'http://localhost:5000'))
+        print "Frontend: %s", frontend.url_endpoint_root
 
-        s = self.helper.get_html_id('', '')
-        print "Result:", s
-        self.assert_(s == 'n/a')
+        # Configure users' management backend
+        User.set_backend(frontend)
 
-        s = self.helper.get_html_id('host', None)
-        print "Result:", s
-        self.assert_(s == 'n/a')
+        # Force authentication ...
+        connection = frontend.login('admin', 'admin', force=True)
+        assert_true(frontend.authenticated)
+        assert_true(frontend.token)
 
-        s = self.helper.get_html_id('bad_type', 'bad')
-        print "Result:", s
-        self.assert_(s == 'bad_type-bad')
+        connection = frontend.connect(username='admin')
+        assert_true(frontend.authenticated)
+        assert_true(frontend.connected)
 
-        s = self.helper.get_html_id('host', 'host1')
-        print "Result:", s
-        self.assert_(s == 'host-host1')
+        print "Get live synthesis ..."
+        synthesis = self.helper.get_livesynthesis()
+        print "Result:", synthesis
+        assert_true('hosts_synthesis' in synthesis)
+        assert_true('nb_elts' in synthesis['hosts_synthesis'])
+        assert_true('services_synthesis' in synthesis)
+        assert_true('nb_elts' in synthesis['services_synthesis'])
 
-        s = self.helper.get_html_id('service', 'service1')
-        print "Result:", s
-        self.assert_(s == 'service-service1')
+        print "Get HTML live synthesis ..."
+        synthesis = self.helper.get_html_livesynthesis()
+        print "Result:", synthesis
+        assert 'hosts_states_popover' in synthesis
+        assert 'host state is UP' in synthesis['hosts_states_popover']
+        assert 'host state is DOWN' in synthesis['hosts_states_popover']
+        assert 'host state is UNREACHABLE' in synthesis['hosts_states_popover']
+        assert 'hosts_state' in synthesis
 
-        s = self.helper.get_html_id('host', 'test*/-_+)')
-        print "Result:", s
-        self.assert_(s == 'host-test-_')
+        assert 'services_states_popover' in synthesis
+        assert 'service state is OK' in synthesis['services_states_popover']
+        assert 'service state is WARNING' in synthesis['services_states_popover']
+        assert 'service state is CRITICAL' in synthesis['services_states_popover']
+        assert 'services_state' in synthesis
+
+        # Backend disconnection
+        frontend.disconnect()
+
+    def test_10_livestate(self):
+        print "---"
+
+        # Initialize backend communication ...
+        frontend.configure(alignak_webui.app.config.get('ui.backend', 'http://localhost:5000'))
+        print "Frontend: %s", frontend.url_endpoint_root
+
+        # Configure users' management backend
+        User.set_backend(frontend)
+
+        # Force authentication ...
+        connection = frontend.login('admin', 'admin', force=True)
+        assert_true(frontend.authenticated)
+        assert_true(frontend.token)
+
+        connection = frontend.connect(username='admin')
+        assert_true(frontend.authenticated)
+        assert_true(frontend.connected)
+
+        print "Get live state ..."
+        ls = self.helper.get_livestate()
+        for item in ls:
+            print "Item:", item
+            assert_true('type' in item)
+            assert_true('id' in item)
+            assert_true('bi' in item)
+            assert_true('name' in item)
+            assert_true('friendly_name' in item)
+
+        print "Get HTML live state ..."
+        html = self.helper.get_html_livestate()
+        assert 'rows' in html
+        assert 'panel_bi' in html
+        print "Result:", html
+        for row in html['rows']:
+            print "Item:", row
+
+        print "Get HTML live state (BI = 5) ..."
+        html = self.helper.get_html_livestate(bi=5)
+        assert 'rows' in html
+        assert 'panel_bi' in html
+        print "Result:", html
+        for row in html['rows']:
+            print "Item:", row
+
+        # Backend disconnection
+        frontend.disconnect()
+

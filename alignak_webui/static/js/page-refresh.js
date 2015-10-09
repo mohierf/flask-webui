@@ -21,7 +21,9 @@
 var refresh_logs=true;
 
 /* By default, we set the page to reload each period defined in WebUI configuration */
-// TODO ...
+var search_filter = app_refresh_period;
+
+/* Default is to set the page to reload each period defined in WebUI configuration */
 var refresh_timeout = app_refresh_period;
 var nb_refresh_retry = 0;
 if (! sessionStorage.getItem("refresh_active")) {
@@ -46,6 +48,12 @@ if (sessionStorage.getItem("refresh_active") == '1') {
  * ---------------------------------------------------------------------------
  */
 function do_refresh_header(){
+   if ($('#hosts-states-popover-content').length == 0 &&
+         $('#services-states-popover-content').length == 0) {
+      // No refresh needed ...
+      return false
+   }
+
    if (refresh_logs) console.debug("Refreshing page header");
 
    // Refresh starting indicator ...
@@ -61,10 +69,6 @@ function do_refresh_header(){
        * Update page header : live synthesis
        */
       if (html['livesynthesis']) {
-         var $response = $('<div />').html(html);
-         // Refresh current page content ...
-         $('#page-content').html($response.find('#page-content').html());
-
          // Refresh header bar hosts/services state ...
          if (
                $('#hosts-states-popover-content').length > 0 &&
@@ -131,7 +135,7 @@ function do_refresh_header(){
                   // Default is current value ...
                   sessionStorage.setItem("how_many_problems_actually", nb_problems);
                }
-               if (refresh_logs) console.debug("Dashboard currently - stored problems number:", old_problems);
+               if (refresh_logs) console.debug("Hosts/Services - stored problems number:", old_problems);
                if (old_problems < nb_problems) {
                   if (refresh_logs) console.debug("Dashboard - play sound!");
                   playAlertSound();
@@ -154,6 +158,55 @@ function do_refresh_header(){
       }
       if (refresh_logs) console.debug("Refresh active is ", sessionStorage.getItem("refresh_active"));
 
+      // Refresh is finished
+      $('#header_loading').removeClass('fa-spin');
+   });
+}
+
+/*
+ * This function is called on each refresh of the current page.
+ * ----------------------------------------------------------------------------
+ *  This function refreshes the system live state table:
+ * - #livestate
+ * => These elements are the real "dynamic" elements in the page content ...
+ * ---------------------------------------------------------------------------
+ */
+function do_refresh_livestate(){
+   if ($('#livestate').length == 0) {
+      // No refresh needed ...
+      return false
+   }
+
+   if (refresh_logs) console.debug("Refreshing system live state");
+
+   // Refresh starting indicator ...
+   $('#header_loading').addClass('fa-spin');
+
+   $.ajax({
+      url: "/refresh_livestate",
+      method: "get",
+      dataType: "json"
+   })
+   .done(function(html, textStatus, jqXHR) {
+      if (refresh_logs) console.debug("Livestate", html);
+      /*
+       * Update page header : live synthesis
+       */
+      if (html['livestate']) {
+         // Refresh header bar hosts/services state ...
+         if ($('#livestate').length > 0 && html['livestate'].length > 0 ) {
+            $.each(html['livestate'], function( index, value ) {
+               // Update table rows
+               $('#livestate table tbody').append(value);
+            });
+         }
+      }
+   })
+   .fail(function( jqXHR, textStatus, errorThrown ) {
+      if (refresh_logs) console.error(jqXHR, errorThrown);
+      if (refresh_logs) console.error(jqXHR. responseText);
+   })
+   .always(function() {
       // Refresh is finished
       $('#header_loading').removeClass('fa-spin');
    });
@@ -305,6 +358,9 @@ function check_UI_backend() {
 
          // Refresh page header ...
          do_refresh_header();
+
+         // Refresh livestate ...
+         do_refresh_livestate();
       }
 
       reinit_refresh();
@@ -373,6 +429,9 @@ $(document).ready(function(){
 
    // Refresh page header ...
    do_refresh_header();
+
+   // Refresh page header ...
+   do_refresh_livestate();
 
    // Toggle refresh ...
    $('body').on("click", '[action="toggle-page-refresh"]', function (e, data) {

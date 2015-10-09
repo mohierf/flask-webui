@@ -448,6 +448,8 @@ class Helper(object):
             parameters.update({"embedded": '{"host_name": 1, "service_description": 1}'})
         if "sort" not in parameters:
             parameters.update({"sort": 'host_name, service_description'})
+        # if "where" not in parameters:
+            # parameters.update({"where": '{"state":true}'})
 
         self.livestate = frontend.get_livestate(parameters=parameters)
         hosts_ids = {}
@@ -457,6 +459,7 @@ class Helper(object):
                 item['id'] = item['host_name']['host_name']
                 item['bi'] = int(item['host_name']['business_impact'])
                 item['name'] = item['host_name']['host_name']
+                item['last_state_change'] = item['last_check']
                 item['friendly_name'] = ""
                 if 'alias' in item['host_name']:
                     if item['host_name']['alias']:
@@ -477,6 +480,7 @@ class Helper(object):
                     hosts_ids[item['service_description']['host_name']],
                     item['service_description']['service_description']
                 )
+                item['last_state_change'] = item['last_check']
                 item['friendly_name'] = ""
                 if 'alias' in item['service_description']:
                     if item['service_description']['alias']:
@@ -486,6 +490,207 @@ class Helper(object):
                         item['friendly_name'] = item['service_description']['display_name']
 
         return self.livestate
+
+    def get_html_livestate(self, bi=0):
+        """
+        Get HTML formatted live state
+
+        Update system live synthesis and build header elements
+
+        :return: hosts_states and services_states HTML strings in a dictionary
+        :rtype: dict
+        """
+        parameters = {}
+        if bi:
+            parameters.update({"where": '{"bi":%d}' % bi})
+
+        items = self.get_livestate(parameters=parameters)
+        if bi:
+            items = [item for item in items if item['bi'] == bi]
+
+        rows = []
+        current_host = ''
+        for item in items:
+            id = self.get_html_id(item['type'], item['name'])
+
+            host_url = ''
+            if current_host != item['host_name']['host_name']:
+                current_host = item['host_name']['host_name']
+                host_url = self.get_html_url("host", item['host_name']['host_name'])
+
+            service_url = 'Host check'
+            if item['type'] == "service":
+                service_url = self.get_html_url("service", item['service_description']['service_description'])
+
+            long_output = ''
+            if item['long_output']:
+                long_output = """
+                    <button
+                        type="button"
+                        class="btn btn-xs btn-info"
+                        data-toggle="popover"
+                        title="Long output"
+                        data-content="Long check output ...">
+                        %s
+                        </button>
+                """ % item['long_output']
+
+            tr= """
+            <tr data-toggle="collapse" data-target="#details-%s" class="accordion-toggle">
+                <td>
+                    <input
+                        id="selector-%s"
+                        type="checkbox" class="input-sm" value=""
+                        data-type="problem" data-business-impact="0" data-item="xxxx">
+                </td>
+                <td>
+                    %s
+                </td>
+                <td>
+                    %s
+                </td>
+                <td>
+                    %s
+                </td>
+                <td class="font-%s"><strong>%s</strong></td>
+                <td class="hidden-sm hidden-xs">
+                    %s
+                </td>
+                <td class="hidden-sm hidden-xs">
+                    %s
+                    %s
+                </td>
+            </tr>""" % (
+                id,
+                id,
+                self.get_html_state(item["type"], item["state"]),
+                host_url,
+                service_url,
+                item['state'].lower(),
+                item['state'],
+                self.print_duration(item['last_state_change'], duration_only=True, x_elts=2),
+                item['output'],
+                long_output
+            )
+            rows.append(tr)
+            # tr = """
+            # <tr>
+                # <td colspan="20" class="hiddenRow">
+                    # <div class="accordion-body collapse" id="details-{{ helper.get_html_id(item['type'], item['name']) }}">
+                        # <table class="table table-condensed">
+                            # <tr>
+                            # {% if item['type'] == "host" %}
+                                # {% if item['host_name']['passive_checks_enabled'] %}
+                                # <td>
+                                    # <i class="fa fa-arrow-left" title="Passive checks are enabled."></i>
+                                    # {% if item['host_name']['freshness_threshold'] %}
+                                    # <i title="Freshness check is enabled">(Freshness threshold: {{item['host_name']['freshness_threshold']}} seconds)</i>
+                                    # {% endif %}
+                                # </td>
+                                # {% endif %}
+                                # {% if item['host_name']['active_checks_enabled'] %}
+                                # <td>
+                                    # <i class="fa fa-arrow-right" title="Active checks are enabled."></i>
+                                    # <i>Last check <strong>{{ helper.print_duration(item['last_check'], duration_only=True, x_elts=2)|safe }}</strong>, next check in <strong>???</strong>, attempt <strong>???</strong></i>
+                                # </td>
+                                # {% endif %}
+                            # {% else %}
+                                # {% if item['service_description']['passive_checks_enabled'] %}
+                                # <td>
+                                    # <i class="fa fa-arrow-left" title="Passive checks are enabled."></i>
+                                    # {% if item['service_description']['freshness_threshold'] %}
+                                    # <i title="Freshness check is enabled">(Freshness threshold: {{item['service_description']['freshness_threshold']}} seconds)</i>
+                                    # {% endif %}
+                                # </td>
+                                # {% endif %}
+                                # {% if item['service_description']['active_checks_enabled'] %}
+                                # <td>
+                                    # <i class="fa fa-arrow-right" title="Active checks are enabled."></i>
+                                    # <i>Last check <strong>{{ helper.print_duration(item['last_check'], duration_only=True, x_elts=2)|safe }}</strong>, next check in <strong>???</strong>, attempt <strong>???</strong></i>
+                                # </td>
+                                # {% endif %}
+                            # {% endif %}
+                                # {% if current_user.can_action() %}
+                                # <td align="right">
+                                    # <div class="btn-group" role="group" data-type="actions" aria-label="Actions">
+                                        # <button class="btn btn-default btn-xs"
+                                        # data-type="action" action="event-handler"
+                                        # data-toggle="tooltip" data-placement="bottom" title="Try to fix (launch event handler)"
+                                        # data-element="test">
+                                        # <i class="fa fa-magic"></i><span class="hidden-sm hidden-xs"> Try to fix</span>
+                                        # </button>
+                                        # <button class="btn btn-default btn-xs"
+                                        # data-type="action" action="recheck"
+                                        # data-toggle="tooltip" data-placement="bottom" title="Launch the check command"
+                                        # data-element="test">
+                                        # <i class="fa fa-refresh"></i><span class="hidden-sm hidden-xs"> Refresh</span>
+                                        # </button>
+                                        # <button class="btn btn-default btn-xs"
+                                        # data-type="action" action="check-result"
+                                        # data-toggle="tooltip" data-placement="bottom" title="Submit a check result"
+                                        # data-element="test"
+                                        # data-user="utilisateur">
+                                        # <i class="fa fa-share"></i><span class="hidden-sm hidden-xs"> Submit check result</span>
+                                        # </button>
+                                        # <button class="btn btn-default btn-xs"
+                                        # data-type="action" action="add-acknowledge"
+                                        # data-toggle="tooltip" data-placement="bottom" title="Acknowledge this problem"
+                                        # data-element="test">
+                                        # <i class="fa fa-check"></i><span class="hidden-sm hidden-xs"> Acknowledge</span>
+                                        # </button>
+                                        # <button class="btn btn-default btn-xs"
+                                        # data-type="action" action="schedule-downtime"
+                                        # data-toggle="tooltip" data-placement="bottom" title="Schedule a downtime for this problem"
+                                        # data-element="test">
+                                        # <i class="fa fa-ambulance"></i><span class="hidden-sm hidden-xs"> Downtime</span>
+                                        # </button>
+                                        # <button class="btn btn-default btn-xs"
+                                        # data-type="action" action="ignore-checks"
+                                        # data-toggle="tooltip" data-placement="bottom" title="Ignore checks for the service (disable checks, notifications, event handlers and force Ok)"
+                                        # data-element="test"
+                                        # data-user="utilisateur">
+                                        # <i class="fa fa-eraser"></i><span class="hidden-sm hidden-xs"> Remove</span>
+                                        # </button>
+                                    # </div>
+                                # </td>
+                                # {% endif %}
+                            # </tr>
+                        # </table>
+                    # </div>
+                # </td>
+            # </tr>"""
+
+        panel_bi = """
+            <div id="livestate-bi-%d" class="panel panel-default">
+                <div class="panel-body">
+                    <button type="button" class="btn btn-default btn-xs pull-left"
+                        data-type="business-impact" data-business-impact="%d" data-state="off">
+                        Select all elements
+                    </button>
+
+                    <i class="pull-right small">%d elements</i>
+                    <h3 class="text-center">Business impact: %s</h3>
+
+                    <table class="table table-invisible table-condensed">
+                        <thead><tr>
+                            <th width="20px"></th>
+                            <th width="40px"></th>
+                            <th width="60px">Host</th>
+                            <th width="90px">Service</th>
+                            <th width="90px">State</th>
+                            <th class="hidden-sm hidden-xs" width="90px">Duration</th>
+                            <th class="hidden-sm hidden-xs" width="100%%">Output</th>
+                        </tr></thead>
+
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>""" % (
+                bi, bi, len(rows), self.get_html_business_impact(bi, icon=True, text=True)
+            )
+
+        return { 'rows': rows, 'panel_bi': panel_bi }
 
     def get_livesynthesis(self):
         """Get live synthesis from backend"""
