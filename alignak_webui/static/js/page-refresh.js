@@ -22,7 +22,6 @@ var refresh_logs=true;
 
 /* By default, we set the page to reload each period defined in WebUI configuration */
 // TODO ...
-var app_refresh_period = 1*60;
 var refresh_timeout = app_refresh_period;
 var nb_refresh_retry = 0;
 if (! sessionStorage.getItem("refresh_active")) {
@@ -30,13 +29,12 @@ if (! sessionStorage.getItem("refresh_active")) {
    // Store default value ...
    sessionStorage.setItem("refresh_active", refresh_timeout==0 ? '0' : '1');
 }
-if (refresh_logs) console.debug("Refresh active is ", sessionStorage.getItem("refresh_active"));
+if (refresh_logs) console.debug("Refresh active is ", sessionStorage.getItem("refresh_active"), ", refresh rate is: ", app_refresh_period);
 if (sessionStorage.getItem("refresh_active") == '1') {
    $('#header_loading').removeClass('font-greyed');
 } else {
    $('#header_loading').addClass('font-greyed');
 }
-if (refresh_logs) console.debug("Refresh active is ", sessionStorage.getItem("refresh_active"));
 
 /*
  * This function is called on each refresh of the current page.
@@ -59,7 +57,9 @@ function do_refresh_header(){
       dataType: "json"
    })
    .done(function(html, textStatus, jqXHR) {
-
+      /*
+       * Update page header : live synthesis
+       */
       if (html['livesynthesis']) {
          var $response = $('<div />').html(html);
          // Refresh current page content ...

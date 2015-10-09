@@ -21,12 +21,12 @@
         <meta name="author" content="{{ manifest.author }}">
         <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
 
-        {% assets "app_css" %}
+        {% assets "libs_css" %}
         <link rel="stylesheet" href="{{ ASSET_URL }}"></link>
         {% endassets %}
         {% block extra_css %}{% endblock %}
 
-        {% assets "app_js" %}
+        {% assets "libs_js" %}
         <script type="text/javascript" src="{{ ASSET_URL }}"></script>
         {% endassets %}
         {% block extra_js %}{% endblock %}
@@ -87,5 +87,13 @@
         </div>
         {% include '_footer.html' %}
         {% include '_modal_about.html' %}
+
+        {% assets "app_css" %}
+        <link rel="stylesheet" href="{{ ASSET_URL }}"></link>
+        {% endassets %}
+
+        {% assets "app_js" %}
+        <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+        {% endassets %}
     </body>
 </html>

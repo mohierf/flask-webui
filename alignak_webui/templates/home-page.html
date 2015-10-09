@@ -5,8 +5,8 @@
 {% block body %}
     {{ super() }}
     {% if settings.get('layout.graph', 'false') != "false" %}
-    <h2 class="page-header">System status</h2>
     <div class="row">
+        <h2 class="page-header">System status</h2>
         <div class="row">
             <div class="col-xs-12 col-sm-6 col-md-4">
                 <canvas id="myChart1" style="height: 60px"></canvas>

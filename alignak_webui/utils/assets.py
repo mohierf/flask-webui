@@ -26,7 +26,7 @@ from flask_assets import Bundle, Environment
 from alignak_webui import app
 
 bundles = {
-
+    # Login page
     'login_js': Bundle(
         'js/jquery-1.11.3.min.js',
         'js/bootstrap.min.js',
@@ -44,26 +44,36 @@ bundles = {
         output='page-login.css',
         filters=['cssrewrite', 'cssmin']),
 
-    'app_js': Bundle(
+    # Application page - external assets
+    'libs_js': Bundle(
         'js/jquery-1.11.3.min.js',
         'js/bootstrap.min.js',
         'js/metisMenu.min.js',
-        'js/application.js',
         'js/jquery.bxslider.min.js',
         'js/Chart.min.js',
         'js/alertify.js',
-        'js/page-refresh.js',
-        output='page-app.js',
+        output='page-libs.js',
         filters='jsmin'),
 
-    'app_css': Bundle(
+    'libs_css': Bundle(
         'css/bootstrap.min.css',
         'css/bootstrap-theme.min.css',
         'css/font-awesome.min.css',
         'css/metisMenu.min.css',
         'css/jquery.bxslider.css',
-        'css/application.css',
         'css/alertify.css',
+        output='page-libs.css',
+        filters=['cssrewrite', 'cssmin']),
+
+    # Application page - own assets
+    'app_js': Bundle(
+        'js/application.js',
+        'js/page-refresh.js',
+        output='page-app.js',
+        filters='jsmin'),
+
+    'app_css': Bundle(
+        'css/application.css',
         output='page-app.css',
         filters=['cssrewrite', 'cssmin'])
 }
