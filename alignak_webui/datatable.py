@@ -349,7 +349,6 @@ class Datatable(object):
             object_type=self.object_type,
             title=ui_dm["title"],
             columns=table_columns,
-            json_columns=json.dumps(table_columns),
             list=resp['_items']
         )
 

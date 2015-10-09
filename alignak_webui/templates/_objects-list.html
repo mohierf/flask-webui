@@ -62,7 +62,7 @@
             //responsive: true,
 
             // Server side processing
-            "columns": {{ json_columns|safe }},
+            "columns": {{ columns|tojson|safe }},
             "serverSide": true,
             "ajax": {
                 "url": "/{{object_type}}s/data",
