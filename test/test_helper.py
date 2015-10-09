@@ -580,14 +580,17 @@ class test_helper(unittest.TestCase):
         print "Get HTML live synthesis ..."
         synthesis = self.helper.get_html_livesynthesis()
         print "Result:", synthesis
-        assert 'hosts_states' in synthesis
-        assert 'host state is UP' in synthesis['hosts_states']
-        assert 'host state is DOWN' in synthesis['hosts_states']
-        assert 'host state is UNREACHABLE' in synthesis['hosts_states']
-        assert 'services_states' in synthesis
-        assert 'service state is OK' in synthesis['services_states']
-        assert 'service state is WARNING' in synthesis['services_states']
-        assert 'service state is CRITICAL' in synthesis['services_states']
+        assert 'hosts_states_popover' in synthesis
+        assert 'host state is UP' in synthesis['hosts_states_popover']
+        assert 'host state is DOWN' in synthesis['hosts_states_popover']
+        assert 'host state is UNREACHABLE' in synthesis['hosts_states_popover']
+        assert 'hosts_state' in synthesis
+
+        assert 'services_states_popover' in synthesis
+        assert 'service state is OK' in synthesis['services_states_popover']
+        assert 'service state is WARNING' in synthesis['services_states_popover']
+        assert 'service state is CRITICAL' in synthesis['services_states_popover']
+        assert 'services_state' in synthesis
 
         print "Get live state ..."
         s = self.helper.get_livestate()
