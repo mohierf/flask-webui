@@ -172,13 +172,13 @@ function do_refresh_livestate(search){
          synthesis = html['livesynthesis']['hosts_synthesis'];
 
          var data = [];
-         $.each(graph_hosts_states, function( index, value ) {
+         $.each(pie_hosts_graph_states, function( index, value ) {
             // Update table rows
-            row = pie_graph_hosts_parameters[value];
+            row = pie_hosts_graph_parameters[value];
             row['value'] = synthesis['nb_'+value]
             data.push(row)
 
-            if (states_queue["nb_"+value].length > 10) {
+            if (states_queue["nb_"+value].length > hosts_states_queue_length) {
                states_queue["nb_"+value].shift();
             }
             states_queue["nb_"+value].push(synthesis['nb_'+value]);
@@ -186,8 +186,15 @@ function do_refresh_livestate(search){
 
          // Get the context of the canvas element we want to select
          var ctx = $("#chart-hosts canvas").get(0).getContext("2d");
-         var myPieChart = new Chart(ctx).Pie(data);
-         $("#chart-hosts span").html(synthesis['nb_elts'] + " hosts");
+         var myPieChart = new Chart(ctx).Doughnut(data, pie_hosts_graph_options);
+         $("#chart-hosts span.subtitle").html(synthesis['nb_elts'] + " hosts");
+         if (pie_hosts_graph_options) {
+            if ($("#chart-hosts span.legend").length) {
+               if (! $("#pie_hosts_graph_options-legend").length) {
+                  $("#chart-hosts span.legend").append(myPieChart.generateLegend());
+               }
+            }
+         }
       }
 
       // Hosts line chart
@@ -195,20 +202,26 @@ function do_refresh_livestate(search){
          synthesis = html['livesynthesis']['hosts_synthesis'];
 
          var data = [];
-         data['labels'] = line_graph_hosts_parameters['labels'];
+         data['labels'] = line_hosts_graph_data['labels'];
          data['datasets'] = [];
-         $.each(graph_hosts_states, function( index, value ) {
+         $.each(line_hosts_graph_states, function( index, value ) {
             // Update table rows
-            row = line_graph_hosts_parameters['datasets'][value];
+            row = line_hosts_graph_data['datasets'][value];
             row['data'] = states_queue["nb_"+value];
             data['datasets'].push(row);
          });
 
          // Get the context of the canvas element we want to select
          var ctx = $("#chart-hosts-serie canvas").get(0).getContext("2d");
-         // var ctx = document.getElementById("myChart1").getContext("2d");
-         var myLineChart = new Chart(ctx).Line(data);
-         $("#chart-hosts-serie span").html(synthesis['nb_elts'] + " hosts (progression)");
+         var myLineChart = new Chart(ctx).Line(data, line_hosts_graph_options);
+         $("#chart-hosts-serie span.subtitle").html(synthesis['nb_elts'] + " hosts (progression)");
+         if (line_hosts_graph_options) {
+            if ($("#chart-hosts-serie span.legend").length) {
+               if (! $("#line_hosts_graph_options-legend").length) {
+                  $("#chart-hosts-serie span.legend").append(myLineChart.generateLegend());
+               }
+            }
+         }
       }
 
       // Services pie chart
@@ -216,13 +229,13 @@ function do_refresh_livestate(search){
          synthesis = html['livesynthesis']['services_synthesis'];
 
          var data = [];
-         $.each(graph_services_states, function( index, value ) {
+         $.each(pie_services_graph_states, function( index, value ) {
             // Update table rows
-            row = pie_graph_services_parameters[value];
+            row = pie_services_graph_parameters[value];
             row['value'] = synthesis['nb_'+value]
             data.push(row)
 
-            if (states_queue["nb_"+value].length > 10) {
+            if (states_queue["nb_"+value].length > services_states_queue_length) {
                states_queue["nb_"+value].shift();
             }
             states_queue["nb_"+value].push(synthesis['nb_'+value]);
@@ -230,8 +243,15 @@ function do_refresh_livestate(search){
 
          // Get the context of the canvas element we want to select
          var ctx = $("#chart-services canvas").get(0).getContext("2d");
-         var myPieChart = new Chart(ctx).Pie(data);
-         $("#chart-services span").html(synthesis['nb_elts'] + " services");
+         var myPieChart = new Chart(ctx).Doughnut(data, pie_services_graph_options);
+         $("#chart-services span.subtitle").html(synthesis['nb_elts'] + " services");
+         if (pie_services_graph_options) {
+            if ($("#chart-services span.legend").length) {
+               if (! $("#pie_services_graph_options-legend").length) {
+                  $("#chart-services span.legend").append(myPieChart.generateLegend());
+               }
+            }
+         }
       }
 
       // Services line chart
@@ -239,34 +259,27 @@ function do_refresh_livestate(search){
          synthesis = html['livesynthesis']['services_synthesis'];
 
          var data = [];
-         data['labels'] = line_graph_services_parameters['labels'];
+         data['labels'] = line_services_graph_data['labels'];
          data['datasets'] = [];
-         $.each(graph_services_states, function( index, value ) {
+         $.each(line_services_graph_states, function( index, value ) {
             console.log(index, value)
             // Update table rows
-            row = line_graph_services_parameters['datasets'][value];
+            row = line_services_graph_data['datasets'][value];
             row['data'] = states_queue["nb_"+value];
             data['datasets'].push(row);
          });
 
          // Get the context of the canvas element we want to select
          var ctx = $("#chart-services-serie canvas").get(0).getContext("2d");
-         var myLineChart = new Chart(ctx).Line(data, {
-            legendTemplate : [
-               "<ul class=\"<%=name.toLowerCase()%>-legend\">",
-                  "<% for (var i=0; i<datasets.length; i++){%>",
-                     "<li>",
-                        "<span style=\"background-color:<%=datasets[i].strokeColor%>\"></span>",
-                        "<%=datasets[i].label%>",
-                        "<%if(datasets[i].label){%>",
-                           "<%=datasets[i].label%>",
-                        "<%}%>",
-                     "</li>",
-                  "<%}%>",
-               "</ul>"
-            ].join('')
-         });
-         $("#chart-services-serie span").html(synthesis['nb_elts'] + " services (progression)");
+         var myLineChart = new Chart(ctx).Line(data, line_services_graph_options);
+         $("#chart-services-serie span.subtitle").html(synthesis['nb_elts'] + " services (progression)");
+         if (line_services_graph_options) {
+            if ($("#chart-services-serie span.legend").length) {
+               if (! $("#line_services_graph_options-legend").length) {
+                  $("#chart-services-serie span.legend").append(myLineChart.generateLegend());
+               }
+            }
+         }
       }
    });
 

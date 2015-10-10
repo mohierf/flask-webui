@@ -61,12 +61,12 @@ class Helper(object):
 
     search_name = None
     search_string = None
+    livestate = None
+    livestate_age = None
 
     def __init__(self, application):
         """Store application reference"""
         self.app = application
-        self.livestate = None
-        self.livestate_age = None
 
     @staticmethod
     def print_date(timestamp, fmt='%Y-%m-%d %H:%M:%S'):
@@ -446,8 +446,12 @@ class Helper(object):
         :return: list of livestate elements
         :rtype: list
         """
-        if self.livestate_age and (int(time.time()) - self.livestate_age) <= 300:
-            return self.livestate
+        if Helper.livestate_age and (int(time.time()) - Helper.livestate_age) <= 60:
+            logger.debug(
+                "get_livestate, return self stored livestate, %d elements",
+                len(Helper.livestate)
+            )
+            return Helper.livestate
 
         if not parameters:
             parameters = {}
@@ -459,10 +463,10 @@ class Helper(object):
         # if "where" not in parameters:
             # parameters.update({"where": '{"state":true}'})
 
-        self.livestate = frontend.get_livestate(parameters=parameters)
+        Helper.livestate = frontend.get_livestate(parameters=parameters)
         hosts_ids = {}
         # Searching for hosts first ...
-        for item in self.livestate:
+        for item in Helper.livestate:
             if not item['service_description']:
                 item['type'] = 'host'
                 item['id'] = item['host_name']['host_name']
@@ -482,7 +486,7 @@ class Helper(object):
                     hosts_ids[item['host_name']['_id']] = item['host_name']['host_name']
 
         # Searching for services next ...
-        for item in self.livestate:
+        for item in Helper.livestate:
             if item['service_description']:
                 item['type'] = 'service'
                 item['id'] = item['service_description']['service_description']
@@ -500,8 +504,8 @@ class Helper(object):
                     if item['service_description']['display_name']:
                         item['friendly_name'] = item['service_description']['display_name']
 
-        self.livestate_age = int(time.time())
-        return self.livestate
+        Helper.livestate_age = int(time.time())
+        return Helper.livestate
 
     def get_html_livestate(self, bi=0, filter=None):
         """
@@ -535,7 +539,9 @@ class Helper(object):
 
             service_url = 'Host check'
             if item['type'] == "service":
-                service_url = self.get_html_url("service", item['service_description']['service_description'])
+                service_url = self.get_html_url(
+                    "service", item['service_description']['service_description']
+                )
 
             long_output = ''
             if item['long_output']:
@@ -550,7 +556,7 @@ class Helper(object):
                         </button>
                 """ % item['long_output']
 
-            tr= """
+            tr = """
             <tr data-toggle="collapse" data-target="#details-%s" class="accordion-toggle">
                 <td>
                     <input
@@ -597,73 +603,46 @@ class Helper(object):
                 passive_checks_enabled = item['service_description']['passive_checks_enabled']
                 freshness_threshold = item['service_description']['freshness_threshold']
                 active_checks_enabled = item['service_description']['passive_checks_enabled']
-            tr2= """
+            tr2 = """
             <tr>
                 <td colspan="20" class="hiddenRow">
                     <div class="accordion-body collapse" id="details-%s">""" % (id)
-            # if passive_checks_enabled:
-                # tr+= """
-                    # <td>
-                        # <i class="fa fa-arrow-left" title="Passive checks are enabled."></i>"""
-            # if freshness_threshold:
-                # tr+= """
-                        # <i title="Freshness check is enabled">(Freshness threshold: %s seconds)</i>
-                    # </td>""" % (freshness_threshold)
-            # if active_checks_enabled:
-                # tr+= """
-                    # <td>
-                        # <i class="fa fa-arrow-right" title="Active checks are enabled."></i>
-                        # <i>Last check <strong>%s</strong>, next check in <strong>???</strong>, attempt <strong>???</strong></i>
-                    # </td>""" % (
-                        # helper.print_duration(item['last_check'], duration_only=True, x_elts=2)
-                    # )
+            if passive_checks_enabled:
+                tr2 += """
+                    <td>
+                        <i class="fa fa-arrow-left" title="Passive checks are enabled."></i>"""
+            if freshness_threshold:
+                tr2 += """
+                        <i title="Freshness check is enabled">(Freshness threshold: %s seconds)</i>
+                    </td>""" % (freshness_threshold)
+            if active_checks_enabled:
+                tr2 += """
+                <td>
+                    <i class="fa fa-arrow-right" title="Active checks are enabled."></i>
+                    <i>
+                        Last check <strong>%s</strong>,
+                        next check in <strong>???</strong>,
+                        attempt <strong>???</strong>
+                    </i>
+                </td>""" % (helper.print_duration(item['last_check'], duration_only=True, x_elts=2))
 
-            # if current_user and current_user.can_action():
-                # tr+= """
-                    # <td align="right">
-                        # <div class="btn-group" role="group" data-type="actions" aria-label="Actions">
-                            # <button class="btn btn-default btn-xs"
-                            # data-type="action" action="event-handler"
-                            # data-toggle="tooltip" data-placement="bottom" title="Try to fix (launch event handler)"
-                            # data-element="test">
-                            # <i class="fa fa-magic"></i><span class="hidden-sm hidden-xs"> Try to fix</span>
-                            # </button>
-                            # <button class="btn btn-default btn-xs"
-                            # data-type="action" action="recheck"
-                            # data-toggle="tooltip" data-placement="bottom" title="Launch the check command"
-                            # data-element="test">
-                            # <i class="fa fa-refresh"></i><span class="hidden-sm hidden-xs"> Refresh</span>
-                            # </button>
-                            # <button class="btn btn-default btn-xs"
-                            # data-type="action" action="check-result"
-                            # data-toggle="tooltip" data-placement="bottom" title="Submit a check result"
-                            # data-element="test"
-                            # data-user="utilisateur">
-                            # <i class="fa fa-share"></i><span class="hidden-sm hidden-xs"> Submit check result</span>
-                            # </button>
-                            # <button class="btn btn-default btn-xs"
-                            # data-type="action" action="add-acknowledge"
-                            # data-toggle="tooltip" data-placement="bottom" title="Acknowledge this problem"
-                            # data-element="test">
-                            # <i class="fa fa-check"></i><span class="hidden-sm hidden-xs"> Acknowledge</span>
-                            # </button>
-                            # <button class="btn btn-default btn-xs"
-                            # data-type="action" action="schedule-downtime"
-                            # data-toggle="tooltip" data-placement="bottom" title="Schedule a downtime for this problem"
-                            # data-element="test">
-                            # <i class="fa fa-ambulance"></i><span class="hidden-sm hidden-xs"> Downtime</span>
-                            # </button>
-                            # <button class="btn btn-default btn-xs"
-                            # data-type="action" action="ignore-checks"
-                            # data-toggle="tooltip" data-placement="bottom" title="Ignore checks for the service (disable checks, notifications, event handlers and force Ok)"
-                            # data-element="test"
-                            # data-user="utilisateur">
-                            # <i class="fa fa-eraser"></i><span class="hidden-sm hidden-xs"> Remove</span>
-                            # </button>
-                        # </div>
-                    # </td>"""
+            if current_user and current_user.can_action():
+                tr2 += """
+                    <td align="right">
+                        <div class="btn-group"
+                            role="group" data-type="actions" aria-label="Actions">
+                            <button class="btn btn-default btn-xs"
+                            data-type="action" action="event-handler"
+                            data-toggle="tooltip" data-placement="bottom"
+                            title="Try to fix (launch event handler)"
+                            data-element="test">
+                            <i class="fa fa-magic"></i>
+                            <span class="hidden-sm hidden-xs"> Try to fix</span>
+                            </button>
+                        </div>
+                    </td>"""
 
-            tr2+= """
+            tr2 += """
                     </div>
                 </td>
             </tr>"""
@@ -696,11 +675,9 @@ class Helper(object):
                         </tbody>
                     </table>
                 </div>
-            </div>""" % (
-                bi, bi, len(rows), self.get_html_business_impact(bi, icon=True, text=True)
-            )
+            </div>""" % (bi, bi, len(rows), self.get_html_business_impact(bi, icon=True, text=True))
 
-        return { 'bi': bi, 'rows': rows, 'panel_bi': panel_bi }
+        return {'bi': bi, 'rows': rows, 'panel_bi': panel_bi}
 
     def get_livesynthesis(self):
         """Get live synthesis from backend"""
@@ -746,7 +723,7 @@ class Helper(object):
                     state.lower(),
                     nb,
                     helper.get_html_state(
-                        "host", state.lower(), label=label, disabled=nb
+                        "host", state.lower(), label=label, disabled=False
                     )
                 )
             except KeyError:
@@ -761,19 +738,19 @@ class Helper(object):
                     state.lower(),
                     nb,
                     helper.get_html_state(
-                        "host", "", extra=state, label=label, disabled=nb
+                        "host", "", extra=state, label=label, disabled=False
                     )
                 )
             except KeyError:
                 continue
 
         hosts_states_popover = """<table class="table table-invisible table-condensed"><tbody>
-            <tr data-count="%d" data-problems="%d">%s</tr>
-            </tbody></table>""" % (
-                int(lsh["nb_elts"]),
-                int(lsh["nb_problems"]),
-                hosts_states_popover
-            )
+        <tr data-count="%d" data-problems="%d">%s</tr>
+        </tbody></table>""" % (
+            int(lsh["nb_elts"]),
+            int(lsh["nb_problems"]),
+            hosts_states_popover
+        )
 
         overall_state = "up"
         if float(lsh["pct_problems"]) >= 100.0 - float(app.config.get("ui.hosts_warning", 5)):
@@ -782,16 +759,16 @@ class Helper(object):
             overall_state = "down"
 
         hosts_state = """
-            <a tabindex="0" role="button" title="Overall hosts states, %d hosts, %d problems">
-                <i class="fa fa-server"></i>
-                <span class="label label-as-badge label-%s">%d</span>
-            </a>
-            """ % (
-                int(lsh["nb_elts"]),
-                int(lsh["nb_problems"]),
-                overall_state,
-                int(lsh["nb_problems"])
-            )
+        <a tabindex="0" role="button" title="Overall hosts states, %d hosts, %d problems">
+            <i class="fa fa-server"></i>
+            <span class="label label-as-badge label-%s">%d</span>
+        </a>
+        """ % (
+            int(lsh["nb_elts"]),
+            int(lsh["nb_problems"]),
+            overall_state,
+            int(lsh["nb_problems"])
+        )
 
         services_states_popover = ''
         lss = ls['services_synthesis']
@@ -804,7 +781,7 @@ class Helper(object):
                     state.lower(),
                     nb,
                     helper.get_html_state(
-                        "service", state.lower(), label=label, disabled=nb
+                        "service", state.lower(), label=label, disabled=False
                     )
                 )
             except KeyError:
@@ -819,17 +796,19 @@ class Helper(object):
                     state.lower(),
                     nb,
                     helper.get_html_state(
-                        "service", "", state, label=label, disabled=nb
+                        "service", "", state, label=label, disabled=False
                     )
                 )
             except KeyError:
                 continue
 
         services_states_popover = """
-            <table class="table table-invisible table-condensed"><tbody>
-            <tr data-count="%d" data-problems="%d">%s</tr>
-            </tbody></table>
-            """ % (int(lss["nb_elts"]), int(lss["nb_problems"]), services_states_popover)
+        <table class="table table-invisible table-condensed"><tbody>
+        <tr data-count="%d" data-problems="%d">%s</tr>
+        </tbody></table>
+        """ % (
+            int(lss["nb_elts"]), int(lss["nb_problems"]), services_states_popover
+        )
 
         overall_state = "ok"
         if float(lss["pct_problems"]) >= 100.0 - float(app.config.get("ui.services_warning", 5)):
@@ -838,16 +817,16 @@ class Helper(object):
             overall_state = "critical"
 
         services_state = """
-            <a tabindex="0" role="button" title="Overall services states, %d services, %d problems">
-                <i class="fa fa-bars"></i>
-                <span class="label label-as-badge label-%s">%d</span>
-            </a>
-            """ % (
-                int(lss["nb_elts"]),
-                int(lss["nb_problems"]),
-                overall_state,
-                int(lss["nb_problems"])
-            )
+        <a tabindex="0" role="button" title="Overall services states, %d services, %d problems">
+            <i class="fa fa-bars"></i>
+            <span class="label label-as-badge label-%s">%d</span>
+        </a>
+        """ % (
+            int(lss["nb_elts"]),
+            int(lss["nb_problems"]),
+            overall_state,
+            int(lss["nb_problems"])
+        )
 
         return {
             'hosts_states_popover': hosts_states_popover,

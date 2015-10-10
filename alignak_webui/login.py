@@ -51,8 +51,6 @@ def user_loader(user_id):
     """
     Called when user login check is required
     """
-    # if current_user.is_authenticated:
-        # return current_user
     app.logger.debug("user_loader - Try to find user with token: %s", user_id)
     return User.get_from_username(user_id)
 

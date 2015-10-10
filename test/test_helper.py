@@ -826,7 +826,7 @@ class test_helper(unittest.TestCase):
         assert not self.helper.livestate_age
         ls = self.helper.get_livestate()
         print "Livestate_age: ", self.helper.livestate_age
-
+        print "Livestate: ", self.helper.livestate
         assert self.helper.livestate_age
         for item in ls:
             print "Item:", item
@@ -835,6 +835,14 @@ class test_helper(unittest.TestCase):
             assert_true('bi' in item)
             assert_true('name' in item)
             assert_true('friendly_name' in item)
+        for item in self.helper.livestate:
+            print "Item:", item
+            assert_true('type' in item)
+            assert_true('id' in item)
+            assert_true('bi' in item)
+            assert_true('name' in item)
+            assert_true('friendly_name' in item)
+        assert False
 
         print "Get HTML live state ..."
         print "Current user: ", current_user

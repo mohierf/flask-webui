@@ -4,61 +4,82 @@
     <h2 class="page-header">System status</h2>
     <div class="row" style="min-height: 150px">
         <div id="chart-hosts" class="col-xs-12 col-sm-6 col-md-2">
-            <div class="well center-block">
+            <div class="well">
                 <canvas></canvas>
-                <center>
-                    <h4>Current hosts states</h4>
-                    <span class="text-muted">-/-</span>
-                </center>
+                <div class="row">
+                    <div class="pull-left well well-sm" style="margin-bottom: 0px">
+                        <span class="legend hidden-sm hidden-xs"></span>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="title">Hosts states</h4>
+                        <span class="subtitle text-muted">-/-</span>
+                    </div>
+                </div>
             </div>
         </div>
         <div id="chart-services" class="col-xs-12 col-sm-6 col-md-2">
-            <div class="well center-block">
+            <div class="well">
                 <canvas></canvas>
-                <center>
-                    <h4>Current services states</h4>
-                    <span class="text-muted">-/-</span>
-                </center>
+                <div class="row">
+                    <div class="pull-left well well-sm" style="margin-bottom: 0px">
+                        <span class="legend hidden-sm hidden-xs"></span>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="title">Services states</h4>
+                        <span class="subtitle text-muted">-/-</span>
+                    </div>
+                </div>
             </div>
         </div>
         <div id="chart-hosts-serie" class="col-xs-12 col-sm-6 col-md-4">
-            <div class="well center-block">
+            <div class="well">
                 <canvas></canvas>
-                <center>
-                    <h4>Hosts states monitoring</h4>
-                    <span class="text-muted">-/-</span>
-                </center>
+                <div class="row">
+                    <div class="pull-left well well-sm" style="margin-bottom: 0px">
+                        <span class="legend hidden-sm hidden-xs"></span>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="title">Hosts states monitoring</h4>
+                        <span class="subtitle text-muted">-/-</span>
+                    </div>
+                </div>
             </div>
         </div>
         <div id="chart-services-serie" class="col-xs-12 col-sm-6 col-md-4">
-            <div class="well center-block">
+            <div class="well">
                 <canvas></canvas>
-                <center>
-                    <h4>Services states monitoring</h4>
-                    <span class="text-muted">-/-</span>
-                </center>
+                <div class="row">
+                    <div class="pull-left well well-sm" style="margin-bottom: 0px">
+                        <span class="legend hidden-sm hidden-xs"></span>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="title">Services states monitoring</h4>
+                        <span class="subtitle text-muted">-/-</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 <script>
+/*
+ * Expert configuration for home page graphs.
+ * ------------------------------------------
+ */
     Chart.defaults.global.responsive = true;
 
+    var hosts_states_queue_length = {{ settings.get('layout.livestate-hosts_states_queue_length', 10) }};
+    var services_states_queue_length = {{ settings.get('layout.livestate-services_states_queue_length', 20) }};
     var states_queue = {
-        "nb_up": [],
-        "nb_unreachable": [],
-        "nb_down": [],
+        "nb_up": [], "nb_unreachable": [], "nb_down": [],
 
-        "nb_ok": [],
-        "nb_warning": [],
-        "nb_critical": [],
-        "nb_unknown": []
-    }
+        "nb_ok": [], "nb_warning": [], "nb_critical": [], "nb_unknown": []
+    };
 
-    var graph_hosts_states = "{{ settings.get('layout.livestate-graphs-hosts-states', 'up,down,unreachable') }}";
-    graph_hosts_states = graph_hosts_states.split(',');
-    console.log("Hosts graphs states:", graph_hosts_states);
-    var pie_graph_hosts_parameters = {
+
+    var pie_hosts_graph_states = "{{ settings.get('layout.livestate-pie_hosts_graph_states_states', 'up,down,unreachable') }}";
+    pie_hosts_graph_states = pie_hosts_graph_states.split(',');
+    var pie_hosts_graph_parameters = {
         "up": {
             color:"#5bb75b",
             highlight: "#5AD3D1",
@@ -74,9 +95,29 @@
             highlight: "#5AD3D1",
             label: "Down"
         }
-    }
-    var line_graph_hosts_parameters = {
-        labels: ["-9", "-8", "-7", "-6", "-5", "-4", "-3", "-2", "-1", "0"],
+    };
+    var pie_hosts_graph_options = {
+        legendTemplate: [
+            '<div id="pie_hosts_graph_options-legend">',
+                '<% for (var i=0; i<segments.length; i++)\{\%>',
+                    '<div>',
+                        '<span style="background-color:<%=segments[i].fillColor%>; display: inline-block; width: 12px; height: 12px; margin-right: 5px;"></span>',
+                        '<small>',
+                        '<%=segments[i].label%>',
+                        '<%if(segments[i].value)\{\%>',
+                            ' (<%=segments[i].value%>)',
+                        '<%\}\%>',
+                        '</small>',
+                    '</div>',
+                '<%}%>',
+            '</div>'
+        ].join('')
+    };
+
+    var line_hosts_graph_states = "{{ settings.get('layout.livestate-pie_hosts_graph_states_states', 'down,unreachable') }}";
+    line_hosts_graph_states = line_hosts_graph_states.split(',');
+    var line_hosts_graph_data = {
+        labels: [],
         datasets: {
             "up": {
                 label: "Hosts up",
@@ -107,11 +148,33 @@
            }
         }
     };
+    // Labels are number of elements in queue ...
+    for (i=-hosts_states_queue_length; i<=0; i++) {
+        line_hosts_graph_data['labels'].push(i);
+    }
+    var line_hosts_graph_options = {
+        datasetFill: true
+        , pointDot: true
+        , legendTemplate: [
+            '<div id="line_hosts_graph_options-legend">',
+                '<% for (var i=0; i<datasets.length; i++)\{\%>',
+                    '<div>',
+                        '<span style="background-color:<%=datasets[i].strokeColor%>; display: inline-block; width: 12px; height: 12px; margin-right: 5px;"></span>',
+                        '<small>',
+                        '<%=datasets[i].label%>',
+                        '<%if(datasets[i].value)\{\%>',
+                            ' (<%=datasets[i].value%>)',
+                        '<%\}\%>',
+                        '</small>',
+                    '</div>',
+                '<%}%>',
+            '</div>'
+        ].join('')
+    };
 
-    var graph_services_states = "{{ settings.get('layout.livestate-graphs-services-states', 'ok,warning,critical,unknown') }}";
-    graph_services_states = graph_services_states.split(',');
-    console.log("Services graphs states:", graph_services_states);
-    var pie_graph_services_parameters = {
+    var pie_services_graph_states = "{{ settings.get('layout.livestate-pie_services_graph_states_states', 'ok,warning,critical,unknown') }}";
+    pie_services_graph_states = pie_services_graph_states.split(',');
+    var pie_services_graph_parameters = {
         "ok": {
             color:"#5bb75b",
             highlight: "#5AD3D1",
@@ -133,8 +196,28 @@
             label: "Unknown"
         }
     }
-    var line_graph_services_parameters = {
-        labels: ["-9", "-8", "-7", "-6", "-5", "-4", "-3", "-2", "-1", "0"],
+    var pie_services_graph_options = {
+        legendTemplate: [
+            '<div id="pie_services_graph_options-legend">',
+                '<% for (var i=0; i<segments.length; i++)\{\%>',
+                    '<div>',
+                        '<span style="background-color:<%=segments[i].fillColor%>; display: inline-block; width: 12px; height: 12px; margin-right: 5px;"></span>',
+                        '<small>',
+                        '<%=segments[i].label%>',
+                        '<%if(segments[i].value)\{\%>',
+                            ' (<%=segments[i].value%>)',
+                        '<%\}\%>',
+                        '</small>',
+                    '</div>',
+                '<%}%>',
+            '</div>'
+        ].join('')
+    }
+
+    var line_services_graph_states = "{{ settings.get('layout.livestate-pie_services_graph_states_states', 'warning,critical,unknown') }}";
+    line_services_graph_states = line_services_graph_states.split(',');
+    var line_services_graph_data = {
+        labels: [],
         datasets: {
             "ok": {
                 label: "Services ok",
@@ -173,5 +256,28 @@
                 pointHighlightStroke: "rgba(220,220,220,1)"
            }
         }
+    };
+    // Labels are number of elements in queue ...
+    for (i=-services_states_queue_length; i<=0; i++) {
+        line_services_graph_data['labels'].push(i);
+    }
+    var line_services_graph_options = {
+        datasetFill: true
+        , pointDot: true
+        , legendTemplate: [
+            '<div id="line_services_graph_options-legend">',
+                '<% for (var i=0; i<datasets.length; i++)\{\%>',
+                    '<div>',
+                        '<span style="background-color:<%=datasets[i].strokeColor%>; display: inline-block; width: 12px; height: 12px; margin-right: 5px;"></span>',
+                        '<small>',
+                        '<%=datasets[i].label%>',
+                        '<%if(datasets[i].value)\{\%>',
+                            '<%=datasets[i].value%>',
+                        '<%\}\%>',
+                        '</small>',
+                    '</div>',
+                '<%}%>',
+            '</div>'
+        ].join('')
     };
 </script>

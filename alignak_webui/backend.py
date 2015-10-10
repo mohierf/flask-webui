@@ -305,10 +305,12 @@ class FrontEnd(object):
         try:
             items = []
 
-            logger.info("get_objects, type: %s, parameters: %s / %d (%s)",
-                     object_type, parameters, all_elements, self.token)
+            logger.info(
+                "get_objects, type: %s, parameters: %s / %d (%s)",
+                object_type, parameters, all_elements, self.token
+            )
 
-             # If requested objects are stored locally ...
+            # If requested objects are stored locally ...
             if object_type in self.objects_cache:
                 logger.debug("get_objects, returns local store objects")
                 return {'_items': self.objects_cache[object_type]}
@@ -352,8 +354,10 @@ class FrontEnd(object):
         try:
             response = None
 
-            logger.debug("set_user_preferences, type: %s, for: %s, parameters: %s",
-                      prefs_type, user, parameters)
+            logger.debug(
+                "set_user_preferences, type: %s, for: %s, parameters: %s",
+                prefs_type, user, parameters
+            )
 
             # Still existing ...
             items = self.backend.get_all(
@@ -583,11 +587,15 @@ class FrontEnd(object):
         })
         for state in 'up', 'down', 'unreachable':
             hosts_synthesis.update({
-                "pct_" + state: round(100.0 * hosts_synthesis['nb_' + state] / hosts_synthesis['nb_elts'], 2)
+                "pct_" + state: round(
+                    100.0 * hosts_synthesis['nb_' + state] / hosts_synthesis['nb_elts'], 2
+                )
             })
         for state in 'acknowledged', 'in_downtime', 'flapping', 'problems':
             hosts_synthesis.update({
-                "pct_" + state: round(100.0 * hosts_synthesis['nb_' + state] / hosts_synthesis['nb_elts'], 2)
+                "pct_" + state: round(
+                    100.0 * hosts_synthesis['nb_' + state] / hosts_synthesis['nb_elts'], 2
+                )
             })
 
         # Services synthesis
@@ -608,11 +616,15 @@ class FrontEnd(object):
         })
         for state in 'ok', 'warning', 'critical', 'unknown':
             services_synthesis.update({
-                "pct_" + state: round(100.0 * services_synthesis['nb_' + state] / services_synthesis['nb_elts'], 2)
+                "pct_" + state: round(
+                    100.0 * services_synthesis['nb_' + state] / services_synthesis['nb_elts'], 2
+                )
             })
         for state in 'acknowledged', 'in_downtime', 'flapping', 'problems':
             services_synthesis.update({
-                "pct_" + state: round(100.0 * services_synthesis['nb_' + state] / services_synthesis['nb_elts'], 2)
+                "pct_" + state: round(
+                    100.0 * services_synthesis['nb_' + state] / services_synthesis['nb_elts'], 2
+                )
             })
 
         synthesis = {
