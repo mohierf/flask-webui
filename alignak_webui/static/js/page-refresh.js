@@ -262,7 +262,6 @@ function do_refresh_livestate(search){
          data['labels'] = line_services_graph_data['labels'];
          data['datasets'] = [];
          $.each(line_services_graph_states, function( index, value ) {
-            console.log(index, value)
             // Update table rows
             row = line_services_graph_data['datasets'][value];
             row['data'] = states_queue["nb_"+value];
@@ -317,7 +316,6 @@ function do_refresh_livestate(search){
 
             // Update table rows ...
             $.each(html['livestate']['rows'], function( index, value ) {
-               if (refresh_logs) console.debug("Row:", index);
                // Update table rows
                $('#livestate-bi-'+bi+' table tbody').append(value);
             });
@@ -328,7 +326,6 @@ function do_refresh_livestate(search){
 
                // Update table rows ...
                $.each(html['livestate']['rows'], function( index, value ) {
-                  if (refresh_logs) console.debug("Row:", index);
                   // Update table rows
                   $('#livestate-bi-'+bi+' table tbody').append(value);
                });
@@ -377,7 +374,7 @@ function check_UI_backend(){
       url: '/ping'
    })
    .done(function( data, textStatus, jqXHR ) {
-      if (refresh_logs) console.log('Pong: ', data);
+      if (refresh_logs) console.log(data);
       if (sessionStorage.getItem("refresh_active") == '1') {
          nb_refresh_retry = 0;
 

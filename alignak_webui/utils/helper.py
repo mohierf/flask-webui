@@ -446,12 +446,12 @@ class Helper(object):
         :return: list of livestate elements
         :rtype: list
         """
-        if Helper.livestate_age and (int(time.time()) - Helper.livestate_age) <= 60:
-            logger.debug(
-                "get_livestate, return self stored livestate, %d elements",
-                len(Helper.livestate)
-            )
-            return Helper.livestate
+        # if Helper.livestate_age and (int(time.time()) - Helper.livestate_age) <= 60:
+            # logger.debug(
+                # "get_livestate, return self stored livestate, %d elements",
+                # len(Helper.livestate)
+            # )
+            # return Helper.livestate
 
         if not parameters:
             parameters = {}
@@ -526,6 +526,9 @@ class Helper(object):
         items = self.get_livestate(parameters=parameters)
         if bi:
             items = [item for item in items if item['bi'] == bi]
+
+        if filter:
+            items = self.search_livestate(search=filter)
 
         rows = []
         current_host = ''
@@ -603,47 +606,50 @@ class Helper(object):
                 passive_checks_enabled = item['service_description']['passive_checks_enabled']
                 freshness_threshold = item['service_description']['freshness_threshold']
                 active_checks_enabled = item['service_description']['passive_checks_enabled']
+            # tr2 = """
+            # <tr>
+                # <td colspan="20" class="hiddenRow">
+                    # <div class="accordion-body collapse" id="details-%s">""" % (id)
             tr2 = """
-            <tr>
-                <td colspan="20" class="hiddenRow">
-                    <div class="accordion-body collapse" id="details-%s">""" % (id)
+            <tr id="details-%s" class="collapse">
+                <td colspan="20">
+            """ % (id)
             if passive_checks_enabled:
                 tr2 += """
-                    <td>
-                        <i class="fa fa-arrow-left" title="Passive checks are enabled."></i>"""
+                <span>
+                    <i class="fa fa-arrow-left" title="Passive checks are enabled."></i>"""
             if freshness_threshold:
                 tr2 += """
-                        <i title="Freshness check is enabled">(Freshness threshold: %s seconds)</i>
-                    </td>""" % (freshness_threshold)
+                    <i title="Freshness check is enabled">(Freshness threshold: %s seconds)</i>
+                </span>""" % (freshness_threshold)
             if active_checks_enabled:
                 tr2 += """
-                <td>
+                <span>
                     <i class="fa fa-arrow-right" title="Active checks are enabled."></i>
                     <i>
                         Last check <strong>%s</strong>,
                         next check in <strong>???</strong>,
                         attempt <strong>???</strong>
                     </i>
-                </td>""" % (helper.print_duration(item['last_check'], duration_only=True, x_elts=2))
+                </span>""" % (helper.print_duration(item['last_check'], duration_only=True, x_elts=2))
 
             if current_user and current_user.can_action():
                 tr2 += """
-                    <td align="right">
-                        <div class="btn-group"
-                            role="group" data-type="actions" aria-label="Actions">
-                            <button class="btn btn-default btn-xs"
-                            data-type="action" action="event-handler"
-                            data-toggle="tooltip" data-placement="bottom"
-                            title="Try to fix (launch event handler)"
-                            data-element="test">
-                            <i class="fa fa-magic"></i>
-                            <span class="hidden-sm hidden-xs"> Try to fix</span>
-                            </button>
-                        </div>
-                    </td>"""
+                <span align="right">
+                    <div class="btn-group"
+                        role="group" data-type="actions" aria-label="Actions">
+                        <button class="btn btn-default btn-xs"
+                        data-type="action" action="event-handler"
+                        data-toggle="tooltip" data-placement="bottom"
+                        title="Try to fix (launch event handler)"
+                        data-element="test">
+                        <i class="fa fa-magic"></i>
+                        <span class="hidden-sm hidden-xs"> Try to fix</span>
+                        </button>
+                    </div>
+                </span>"""
 
             tr2 += """
-                    </div>
                 </td>
             </tr>"""
 
