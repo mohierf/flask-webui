@@ -428,7 +428,7 @@ class test_frontend(unittest.TestCase):
         # Backend connection
         frontend.disconnect()
 
-    def test_0_livesynthesis(self):
+    def test_9_livesynthesis(self):
         print ''
         print 'get live synthesis'
 

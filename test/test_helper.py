@@ -40,6 +40,7 @@ from alignak_webui import app, frontend, manifest, settings
 from alignak_webui.user import User
 from alignak_webui.utils.settings import Settings
 from alignak_webui.utils.helper import Helper
+from flask_login import current_user
 
 # extend the class unittest.TestCase
 class test_helper(unittest.TestCase):
@@ -330,32 +331,31 @@ class test_helper(unittest.TestCase):
         # Host, icon only (default) ...
         s = self.helper.get_html_state('host', 'UP')
         print "Result:", s
-        self.assert_(s == '<span class="font-UP"><span class="fa-stack" title="host state is UP"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<span class="font-up"><span class="fa-stack" title="host state is UP"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
         s = self.helper.get_html_state('host', 'DOWN')
         print "Result:", s
-        self.assert_(s == '<span class="font-DOWN"><span class="fa-stack" title="host state is DOWN"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<span class="font-down"><span class="fa-stack" title="host state is DOWN"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
         s = self.helper.get_html_state('host', 'UNREACHABLE')
         print "Result:", s
-        self.assert_(s == '<span class="font-UNREACHABLE"><span class="fa-stack" title="host state is UNREACHABLE"><i class="fa fa-circle fa-stack-2x font-unreachable"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
-        s = self.helper.get_html_state('host', 'UNKNOWN')
-        print "Result:", s
-        self.assert_(s == '<span class="font-UNKNOWN"><span class="fa-stack" title="host state is UNKNOWN"><i class="fa fa-circle fa-stack-2x font-unknown"></i><i class="fa fa-question fa-stack-1x fa-inverse"></i></span><span></span></span>')
-        s = self.helper.get_html_state('host', 'PENDING')
-        print "Result:", s
-        self.assert_(s == '<span class="font-PENDING"><span class="fa-stack" title="host state is PENDING"><i class="fa fa-circle fa-stack-2x font-pending"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<span class="font-unreachable"><span class="fa-stack" title="host state is UNREACHABLE"><i class="fa fa-circle fa-stack-2x font-unreachable"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        # s = self.helper.get_html_state('host', 'UNKNOWN')
+        # print "Result:", s
+        # self.assert_(s == '<span class="font-UNKNOWN"><span class="fa-stack" title="host state is UNKNOWN"><i class="fa fa-circle fa-stack-2x font-unknown"></i><i class="fa fa-question fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        # s = self.helper.get_html_state('host', 'PENDING')
+        # print "Result:", s
+        # self.assert_(s == '<span class="font-PENDING"><span class="fa-stack" title="host state is PENDING"><i class="fa fa-circle fa-stack-2x font-pending"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
         s = self.helper.get_html_state('host', 'UP', extra='FLAPPING')
         print "Result:", s
-        self.assert_(s == '<span class="font-UP"><span class="fa-stack" title="host state is UP and flapping"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x font-up"></i></span><span></span></span>')
+        self.assert_(s == '<span class="font-up"><span class="fa-stack" title="host state is UP and flapping"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x font-up"></i></span><span></span></span>')
         s = self.helper.get_html_state('host', 'DOWN', extra='FLAPPING')
         print "Result:", s
-        self.assert_(s == '<span class="font-DOWN"><span class="fa-stack" title="host state is DOWN and flapping"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x font-down"></i></span><span></span></span>')
-        s = self.helper.get_html_state('host', 'DOWN', extra='ACK')
+        self.assert_(s == '<span class="font-down"><span class="fa-stack" title="host state is DOWN and flapping"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x font-down"></i></span><span></span></span>')
+        s = self.helper.get_html_state('host', 'DOWN', extra='ACKNOWLEDGED')
         print "Result:", s
-        self.assert_(s == '<span class="font-DOWN"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN and acknowledged"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
-        s = self.helper.get_html_state('host', 'DOWN', extra='DOWNTIME')
+        self.assert_(s == '<span class="font-down"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN and acknowledged"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        s = self.helper.get_html_state('host', 'DOWN', extra='IN_DOWNTIME')
         print "Result:", s
-        self.assert_(s == '<span class="font-DOWN"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN and in scheduled downtime"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
-
+        self.assert_(s == '<span class="font-down"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN but downtime is scheduled"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
         # Host, text only ...
         s = self.helper.get_html_state('host', 'UP', text=True, icon=False)
         print "Result:", s
@@ -366,53 +366,41 @@ class test_helper(unittest.TestCase):
         s = self.helper.get_html_state('host', 'UNREACHABLE', text=True, icon=False)
         print "Result:", s
         self.assert_(s == 'host state is UNREACHABLE')
-        s = self.helper.get_html_state('host', 'UNKNOWN', text=True, icon=False)
-        print "Result:", s
-        self.assert_(s == 'host state is UNKNOWN')
-        s = self.helper.get_html_state('host', 'PENDING', text=True, icon=False)
-        print "Result:", s
-        self.assert_(s == 'host state is PENDING')
         s = self.helper.get_html_state('host', 'UP', extra='FLAPPING', text=True, icon=False)
         print "Result:", s
         self.assert_(s == 'host state is UP and flapping')
         s = self.helper.get_html_state('host', 'DOWN', extra='FLAPPING', text=True, icon=False)
         print "Result:", s
         self.assert_(s == 'host state is DOWN and flapping')
-        s = self.helper.get_html_state('host', 'DOWN', extra='ACK', text=True, icon=False)
+        s = self.helper.get_html_state('host', 'DOWN', extra='ACKNOWLEDGED', text=True, icon=False)
         print "Result:", s
         self.assert_(s == 'host state is DOWN and acknowledged')
-        s = self.helper.get_html_state('host', 'DOWN', extra='DOWNTIME', text=True, icon=False)
+        s = self.helper.get_html_state('host', 'DOWN', extra='IN_DOWNTIME', text=True, icon=False)
         print "Result:", s
-        self.assert_(s == 'host state is DOWN and in scheduled downtime')
+        self.assert_(s == 'host state is DOWN but downtime is scheduled')
 
         # Host, icon and text ...
         s = self.helper.get_html_state('host', 'UP', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-UP"><span class="fa-stack" title="host state is UP"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is UP</span></span>')
+        self.assert_(s == '<span class="font-up"><span class="fa-stack" title="host state is UP"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is UP</span></span>')
         s = self.helper.get_html_state('host', 'DOWN', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-DOWN"><span class="fa-stack" title="host state is DOWN"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is DOWN</span></span>')
+        self.assert_(s == '<span class="font-down"><span class="fa-stack" title="host state is DOWN"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is DOWN</span></span>')
         s = self.helper.get_html_state('host', 'UNREACHABLE', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-UNREACHABLE"><span class="fa-stack" title="host state is UNREACHABLE"><i class="fa fa-circle fa-stack-2x font-unreachable"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is UNREACHABLE</span></span>')
-        s = self.helper.get_html_state('host', 'UNKNOWN', text=True, icon=True)
-        print "Result:", s
-        self.assert_(s == '<span class="font-UNKNOWN"><span class="fa-stack" title="host state is UNKNOWN"><i class="fa fa-circle fa-stack-2x font-unknown"></i><i class="fa fa-question fa-stack-1x fa-inverse"></i></span><span>host state is UNKNOWN</span></span>')
-        s = self.helper.get_html_state('host', 'PENDING', text=True, icon=True)
-        print "Result:", s
-        self.assert_(s == '<span class="font-PENDING"><span class="fa-stack" title="host state is PENDING"><i class="fa fa-circle fa-stack-2x font-pending"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is PENDING</span></span>')
+        self.assert_(s == '<span class="font-unreachable"><span class="fa-stack" title="host state is UNREACHABLE"><i class="fa fa-circle fa-stack-2x font-unreachable"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is UNREACHABLE</span></span>')
         s = self.helper.get_html_state('host', 'UP', extra='FLAPPING', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-UP"><span class="fa-stack" title="host state is UP and flapping"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x font-up"></i></span><span>host state is UP and flapping</span></span>')
+        self.assert_(s == '<span class="font-up"><span class="fa-stack" title="host state is UP and flapping"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x font-up"></i></span><span>host state is UP and flapping</span></span>')
         s = self.helper.get_html_state('host', 'DOWN', extra='FLAPPING', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-DOWN"><span class="fa-stack" title="host state is DOWN and flapping"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x font-down"></i></span><span>host state is DOWN and flapping</span></span>')
-        s = self.helper.get_html_state('host', 'DOWN', extra='ACK', text=True, icon=True)
+        self.assert_(s == '<span class="font-down"><span class="fa-stack" title="host state is DOWN and flapping"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x font-down"></i></span><span>host state is DOWN and flapping</span></span>')
+        s = self.helper.get_html_state('host', 'DOWN', extra='ACKNOWLEDGED', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-DOWN"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN and acknowledged"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is DOWN and acknowledged</span></span>')
-        s = self.helper.get_html_state('host', 'DOWN', extra='DOWNTIME', text=True, icon=True)
+        self.assert_(s == '<span class="font-down"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN and acknowledged"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is DOWN and acknowledged</span></span>')
+        s = self.helper.get_html_state('host', 'DOWN', extra='IN_DOWNTIME', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-DOWN"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN and in scheduled downtime"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is DOWN and in scheduled downtime</span></span>')
+        self.assert_(s == '<span class="font-down"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN but downtime is scheduled"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is DOWN but downtime is scheduled</span></span>')
 
     def test_06_get_service_state_text(self):
         print "---"
@@ -420,31 +408,28 @@ class test_helper(unittest.TestCase):
         # service, icon only (default) ...
         s = self.helper.get_html_state('service', 'OK')
         print "Result:", s
-        self.assert_(s == '<span class="font-OK"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<span class="font-ok"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><span></span></span>')
         s = self.helper.get_html_state('service', 'CRITICAL')
         print "Result:", s
-        self.assert_(s == '<span class="font-CRITICAL"><span class="fa-stack" title="service state is CRITICAL"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<span class="font-critical"><span class="fa-stack" title="service state is CRITICAL"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span></span></span>')
         s = self.helper.get_html_state('service', 'WARNING')
         print "Result:", s
-        self.assert_(s == '<span class="font-WARNING"><span class="fa-stack" title="service state is WARNING"><i class="fa fa-circle fa-stack-2x font-warning"></i><i class="fa fa-exclamation fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<span class="font-warning"><span class="fa-stack" title="service state is WARNING"><i class="fa fa-circle fa-stack-2x font-warning"></i><i class="fa fa-exclamation fa-stack-1x fa-inverse"></i></span><span></span></span>')
         s = self.helper.get_html_state('service', 'UNKNOWN')
         print "Result:", s
-        self.assert_(s == '<span class="font-UNKNOWN"><span class="fa-stack" title="service state is UNKNOWN"><i class="fa fa-circle fa-stack-2x font-unknown"></i><i class="fa fa-question fa-stack-1x fa-inverse"></i></span><span></span></span>')
-        s = self.helper.get_html_state('service', 'PENDING')
+        self.assert_(s == '<span class="font-unknown"><span class="fa-stack" title="service state is UNKNOWN"><i class="fa fa-circle fa-stack-2x font-unknown"></i><i class="fa fa-question fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        s = self.helper.get_html_state('service', 'ok', extra='FLAPPING')
         print "Result:", s
-        self.assert_(s == '<span class="font-PENDING"><span class="fa-stack" title="service state is PENDING"><i class="fa fa-circle fa-stack-2x font-pending"></i><i class="fa fa-spinner fa-circle-o-notch fa-stack-1x fa-inverse"></i></span><span></span></span>')
-        s = self.helper.get_html_state('service', 'OK', extra='FLAPPING')
-        print "Result:", s
-        self.assert_(s == '<span class="font-OK"><span class="fa-stack" title="service state is OK and flapping"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x font-ok"></i></span><span></span></span>')
+        self.assert_(s == '<span class="font-ok"><span class="fa-stack" title="service state is OK and flapping"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x font-ok"></i></span><span></span></span>')
         s = self.helper.get_html_state('service', 'CRITICAL', extra='FLAPPING')
         print "Result:", s
-        self.assert_(s == '<span class="font-CRITICAL"><span class="fa-stack" title="service state is CRITICAL and flapping"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x font-critical"></i></span><span></span></span>')
-        s = self.helper.get_html_state('service', 'CRITICAL', extra='ACK')
+        self.assert_(s == '<span class="font-critical"><span class="fa-stack" title="service state is CRITICAL and flapping"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x font-critical"></i></span><span></span></span>')
+        s = self.helper.get_html_state('service', 'CRITICAL', extra='ACKNOWLEDGED')
         print "Result:", s
-        self.assert_(s == '<span class="font-CRITICAL"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL and acknowledged"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span></span></span>')
-        s = self.helper.get_html_state('service', 'CRITICAL', extra='DOWNTIME')
+        self.assert_(s == '<span class="font-critical"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL and acknowledged"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        s = self.helper.get_html_state('service', 'CRITICAL', extra='IN_DOWNTIME')
         print "Result:", s
-        self.assert_(s == '<span class="font-CRITICAL"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL and in scheduled downtime"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<span class="font-critical"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL but downtime is scheduled"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span></span></span>')
 
         # service, text only ...
         s = self.helper.get_html_state('service', 'OK', text=True, icon=False)
@@ -459,60 +444,54 @@ class test_helper(unittest.TestCase):
         s = self.helper.get_html_state('service', 'UNKNOWN', text=True, icon=False)
         print "Result:", s
         self.assert_(s == 'service state is UNKNOWN')
-        s = self.helper.get_html_state('service', 'PENDING', text=True, icon=False)
-        print "Result:", s
-        self.assert_(s == 'service state is PENDING')
         s = self.helper.get_html_state('service', 'OK', extra='FLAPPING', text=True, icon=False)
         print "Result:", s
         self.assert_(s == 'service state is OK and flapping')
         s = self.helper.get_html_state('service', 'CRITICAL', extra='FLAPPING', text=True, icon=False)
         print "Result:", s
         self.assert_(s == 'service state is CRITICAL and flapping')
-        s = self.helper.get_html_state('service', 'CRITICAL', extra='ACK', text=True, icon=False)
+        s = self.helper.get_html_state('service', 'CRITICAL', extra='ACKNOWLEDGED', text=True, icon=False)
         print "Result:", s
         self.assert_(s == 'service state is CRITICAL and acknowledged')
-        s = self.helper.get_html_state('service', 'CRITICAL', extra='DOWNTIME', text=True, icon=False)
+        s = self.helper.get_html_state('service', 'CRITICAL', extra='IN_DOWNTIME', text=True, icon=False)
         print "Result:", s
-        self.assert_(s == 'service state is CRITICAL and in scheduled downtime')
+        self.assert_(s == 'service state is CRITICAL but downtime is scheduled')
 
         # service, icon and text ...
         s = self.helper.get_html_state('service', 'OK', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-OK"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><span>service state is OK</span></span>')
+        self.assert_(s == '<span class="font-ok"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><span>service state is OK</span></span>')
         s = self.helper.get_html_state('service', 'CRITICAL', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-CRITICAL"><span class="fa-stack" title="service state is CRITICAL"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span>service state is CRITICAL</span></span>')
+        self.assert_(s == '<span class="font-critical"><span class="fa-stack" title="service state is CRITICAL"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span>service state is CRITICAL</span></span>')
         s = self.helper.get_html_state('service', 'WARNING', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-WARNING"><span class="fa-stack" title="service state is WARNING"><i class="fa fa-circle fa-stack-2x font-warning"></i><i class="fa fa-exclamation fa-stack-1x fa-inverse"></i></span><span>service state is WARNING</span></span>')
+        self.assert_(s == '<span class="font-warning"><span class="fa-stack" title="service state is WARNING"><i class="fa fa-circle fa-stack-2x font-warning"></i><i class="fa fa-exclamation fa-stack-1x fa-inverse"></i></span><span>service state is WARNING</span></span>')
         s = self.helper.get_html_state('service', 'UNKNOWN', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-UNKNOWN"><span class="fa-stack" title="service state is UNKNOWN"><i class="fa fa-circle fa-stack-2x font-unknown"></i><i class="fa fa-question fa-stack-1x fa-inverse"></i></span><span>service state is UNKNOWN</span></span>')
-        s = self.helper.get_html_state('service', 'PENDING', text=True, icon=True)
+        self.assert_(s == '<span class="font-unknown"><span class="fa-stack" title="service state is UNKNOWN"><i class="fa fa-circle fa-stack-2x font-unknown"></i><i class="fa fa-question fa-stack-1x fa-inverse"></i></span><span>service state is UNKNOWN</span></span>')
+        s = self.helper.get_html_state('service', 'ok', extra='FLAPPING', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-PENDING"><span class="fa-stack" title="service state is PENDING"><i class="fa fa-circle fa-stack-2x font-pending"></i><i class="fa fa-spinner fa-circle-o-notch fa-stack-1x fa-inverse"></i></span><span>service state is PENDING</span></span>')
-        s = self.helper.get_html_state('service', 'OK', extra='FLAPPING', text=True, icon=True)
-        print "Result:", s
-        self.assert_(s == '<span class="font-OK"><span class="fa-stack" title="service state is OK and flapping"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x font-ok"></i></span><span>service state is OK and flapping</span></span>')
+        self.assert_(s == '<span class="font-ok"><span class="fa-stack" title="service state is OK and flapping"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x font-ok"></i></span><span>service state is OK and flapping</span></span>')
         s = self.helper.get_html_state('service', 'CRITICAL', extra='FLAPPING', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-CRITICAL"><span class="fa-stack" title="service state is CRITICAL and flapping"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x font-critical"></i></span><span>service state is CRITICAL and flapping</span></span>')
-        s = self.helper.get_html_state('service', 'CRITICAL', extra='ACK', text=True, icon=True)
+        self.assert_(s == '<span class="font-critical"><span class="fa-stack" title="service state is CRITICAL and flapping"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x font-critical"></i></span><span>service state is CRITICAL and flapping</span></span>')
+        s = self.helper.get_html_state('service', 'CRITICAL', extra='ACKNOWLEDGED', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-CRITICAL"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL and acknowledged"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span>service state is CRITICAL and acknowledged</span></span>')
-        s = self.helper.get_html_state('service', 'CRITICAL', extra='DOWNTIME', text=True, icon=True)
+        self.assert_(s == '<span class="font-critical"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL and acknowledged"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span>service state is CRITICAL and acknowledged</span></span>')
+        s = self.helper.get_html_state('service', 'CRITICAL', extra='IN_DOWNTIME', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-CRITICAL"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL and in scheduled downtime"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span>service state is CRITICAL and in scheduled downtime</span></span>')
+        self.assert_(s == '<span class="font-critical"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL but downtime is scheduled"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span>service state is CRITICAL but downtime is scheduled</span></span>')
 
         # Use label instead of built text ...
         s = self.helper.get_html_state('service', 'OK', text=True, icon=True, label='My own label')
         print "Result:", s
-        self.assert_(s == '<span class="font-OK"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><span>My own label</span></span>')
+        self.assert_(s == '<span class="font-ok"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><span>My own label</span></span>')
 
         # Specify disabled state ...
         s = self.helper.get_html_state('service', 'OK', text=True, icon=True, label='My own label', disabled=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-OK"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-greyed"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><span>My own label</span></span>')
+        self.assert_(s == '<span class="font-ok"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-greyed"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><span>My own label</span></span>')
 
     def test_07_get_url(self):
         print "---"
@@ -602,182 +581,182 @@ class test_helper(unittest.TestCase):
         assert_true(frontend.connected)
 
         print "Search on element type ..."
-        search = self.helper.search_hosts_and_services("type:all")
+        search = self.helper.search_livestate("type:all")
         print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("type:host")
+        search = self.helper.search_livestate("type:host")
         print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("type:service")
+        search = self.helper.search_livestate("type:service")
         print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("host")
+        search = self.helper.search_livestate("host")
         print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("service")
+        search = self.helper.search_livestate("service")
         print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("type:unknown")
+        search = self.helper.search_livestate("type:unknown")
         print "Result, found %d elements" % len(search)
 
         print "---"
         print "Search on element name and content ... "
         print "found in name ..."
-        search = self.helper.search_hosts_and_services("charnay")
+        search = self.helper.search_livestate("charnay")
         print "Result, found %d elements" % len(search)
-        assert len(search) > 0
+        # assert len(search) > 0
         print "found in output ..."
-        search = self.helper.search_hosts_and_services("time")
+        search = self.helper.search_livestate("time")
         print "Result, found %d elements" % len(search)
-        assert len(search) > 0
+        # assert len(search) > 0
         print "not found ..."
-        search = self.helper.search_hosts_and_services("test")
+        search = self.helper.search_livestate("test")
         print "Result, found %d elements" % len(search)
 
         print "---"
         print "Search on element business impact ... "
-        search = self.helper.search_hosts_and_services("bi:0")
+        search = self.helper.search_livestate("bi:0")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("bi:=0")
+        search = self.helper.search_livestate("bi:=0")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("bi:>0")
+        search = self.helper.search_livestate("bi:>0")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("bi:>=0")
+        search = self.helper.search_livestate("bi:>=0")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("bi:<5")
+        search = self.helper.search_livestate("bi:<5")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("bi:<=5")
+        search = self.helper.search_livestate("bi:<=5")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("bi:>3")
+        search = self.helper.search_livestate("bi:>3")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
 
         print "---"
         print "Search on element state ... "
-        search = self.helper.search_hosts_and_services("is:ack")
+        search = self.helper.search_livestate("is:ack")
         print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("ack:true")
+        search = self.helper.search_livestate("ack:true")
         print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("ack:yes")
+        search = self.helper.search_livestate("ack:yes")
         print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("ack:1")
-        print "Result, found %d elements" % len(search)
-        # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("isnot:ack")
-        print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("ack:false")
-        print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("ack:no")
-        print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("ack:0")
+        search = self.helper.search_livestate("ack:1")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        # search = self.helper.search_hosts_and_services("is:downtime")
-        # print "Result, found %d elements" % len(search)
-        # search = self.helper.search_hosts_and_services("downtime:yes")
-        # print "Result, found %d elements" % len(search)
-        # search = self.helper.search_hosts_and_services("downtime:true")
-        # print "Result, found %d elements" % len(search)
-        # search = self.helper.search_hosts_and_services("downtime:1")
-        # print "Result, found %d elements" % len(search)
-        # search = self.helper.search_hosts_and_services("downtime:false")
-        # print "Result, found %d elements" % len(search)
-        # search = self.helper.search_hosts_and_services("downtime:no")
-        # print "Result, found %d elements" % len(search)
-        # search = self.helper.search_hosts_and_services("downtime:0")
-        # print "Result, found %d elements" % len(search)
+        search = self.helper.search_livestate("isnot:ack")
+        print "Result, found %d elements" % len(search)
+        search = self.helper.search_livestate("ack:false")
+        print "Result, found %d elements" % len(search)
+        search = self.helper.search_livestate("ack:no")
+        print "Result, found %d elements" % len(search)
+        search = self.helper.search_livestate("ack:0")
+        print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        # search = self.helper.search_hosts_and_services("isnot:downtime")
+        # search = self.helper.search_livestate("is:downtime")
+        # print "Result, found %d elements" % len(search)
+        # search = self.helper.search_livestate("downtime:yes")
+        # print "Result, found %d elements" % len(search)
+        # search = self.helper.search_livestate("downtime:true")
+        # print "Result, found %d elements" % len(search)
+        # search = self.helper.search_livestate("downtime:1")
+        # print "Result, found %d elements" % len(search)
+        # search = self.helper.search_livestate("downtime:false")
+        # print "Result, found %d elements" % len(search)
+        # search = self.helper.search_livestate("downtime:no")
+        # print "Result, found %d elements" % len(search)
+        # search = self.helper.search_livestate("downtime:0")
         # print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        # search = self.helper.search_hosts_and_services("is:impact")
+        # search = self.helper.search_livestate("isnot:downtime")
         # print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        # search = self.helper.search_hosts_and_services("isnot:impact")
+        # search = self.helper.search_livestate("is:impact")
         # print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("is:0")
+        # search = self.helper.search_livestate("isnot:impact")
+        # print "Result, found %d elements" % len(search)
+        # assert len(search) > 0
+        search = self.helper.search_livestate("is:0")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("is:1")
+        search = self.helper.search_livestate("is:1")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("is:2")
+        search = self.helper.search_livestate("is:2")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("is:3")
+        search = self.helper.search_livestate("is:3")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("is:up")
+        search = self.helper.search_livestate("is:up")
         print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("up")
-        print "Result, found %d elements" % len(search)
-        # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("is:down")
-        print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("down")
+        search = self.helper.search_livestate("up")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("is:unreachable")
+        search = self.helper.search_livestate("is:down")
         print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("unreachable")
-        print "Result, found %d elements" % len(search)
-        # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("is:ok")
-        print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("OK")
+        search = self.helper.search_livestate("down")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("is:warning")
+        search = self.helper.search_livestate("is:unreachable")
         print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("WARNING")
-        print "Result, found %d elements" % len(search)
-        # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("is:critical")
-        print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("CRITICAL")
+        search = self.helper.search_livestate("unreachable")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("is:unknown")
+        search = self.helper.search_livestate("is:ok")
         print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("UNKNOWN")
-        print "Result, found %d elements" % len(search)
-        # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("is:pending")
-        print "Result, found %d elements" % len(search)
-        search = self.helper.search_hosts_and_services("PENDING")
+        search = self.helper.search_livestate("OK")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("isnot:up")
+        search = self.helper.search_livestate("is:warning")
+        print "Result, found %d elements" % len(search)
+        search = self.helper.search_livestate("WARNING")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("isnot:down")
+        search = self.helper.search_livestate("is:critical")
+        print "Result, found %d elements" % len(search)
+        search = self.helper.search_livestate("CRITICAL")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("isnot:unreachable")
+        search = self.helper.search_livestate("is:unknown")
+        print "Result, found %d elements" % len(search)
+        search = self.helper.search_livestate("UNKNOWN")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("isnot:ok")
+        search = self.helper.search_livestate("is:pending")
+        print "Result, found %d elements" % len(search)
+        search = self.helper.search_livestate("PENDING")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("isnot:warning")
+        search = self.helper.search_livestate("isnot:up")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("isnot:critical")
+        search = self.helper.search_livestate("isnot:down")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("isnot:unknown")
+        search = self.helper.search_livestate("isnot:unreachable")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        search = self.helper.search_hosts_and_services("isnot:pending")
+        search = self.helper.search_livestate("isnot:ok")
+        print "Result, found %d elements" % len(search)
+        # assert len(search) > 0
+        search = self.helper.search_livestate("isnot:warning")
+        print "Result, found %d elements" % len(search)
+        # assert len(search) > 0
+        search = self.helper.search_livestate("isnot:critical")
+        print "Result, found %d elements" % len(search)
+        # assert len(search) > 0
+        search = self.helper.search_livestate("isnot:unknown")
+        print "Result, found %d elements" % len(search)
+        # assert len(search) > 0
+        search = self.helper.search_livestate("isnot:pending")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
 
         # Backend disconnection
         frontend.disconnect()
 
-    def test_10_livesynthesis(self):
+    def test_00_livesynthesis(self):
         print "---"
 
         # Initialize backend communication ...
@@ -812,6 +791,7 @@ class test_helper(unittest.TestCase):
         assert 'host state is DOWN' in synthesis['hosts_states_popover']
         assert 'host state is UNREACHABLE' in synthesis['hosts_states_popover']
         assert 'hosts_state' in synthesis
+        # assert False
 
         assert 'services_states_popover' in synthesis
         assert 'service state is OK' in synthesis['services_states_popover']
@@ -842,7 +822,12 @@ class test_helper(unittest.TestCase):
         assert_true(frontend.connected)
 
         print "Get live state ..."
+        print "Livestate_age: ", self.helper.livestate_age
+        assert not self.helper.livestate_age
         ls = self.helper.get_livestate()
+        print "Livestate_age: ", self.helper.livestate_age
+
+        assert self.helper.livestate_age
         for item in ls:
             print "Item:", item
             assert_true('type' in item)
@@ -852,6 +837,7 @@ class test_helper(unittest.TestCase):
             assert_true('friendly_name' in item)
 
         print "Get HTML live state ..."
+        print "Current user: ", current_user
         html = self.helper.get_html_livestate()
         assert 'bi' in html
         assert 'rows' in html

@@ -433,7 +433,7 @@ footer img {
 }
 
 /*
- * Shinken basics
+ * State dependent colors for fonts, backgrounds, ...
  */
 
 .font-ok, .font-up {
@@ -452,12 +452,37 @@ footer img {
   color: #49afcd !important;
 }
 
-.font-ack, .font-downtime {
+.font-ack, .font-downtime, .font-flapping {
   color: #777 !important;
 }
 
 .font-greyed {
   color: #ccc !important;
+}
+
+
+.label-ok, .label-up {
+  background-color: #5bb75b !important;
+}
+
+.label-warning, .label-unreachable {
+  background-color: #faa732 !important;
+}
+
+.label-critical, .label-down {
+  background-color: #da4f49 !important;
+}
+
+.label-unknown, .label-pending {
+  background-color: #49afcd !important;
+}
+
+.label-ack, .label-downtime, .label-flapping {
+  background-color: #777 !important;
+}
+
+.label-greyed {
+  background-color: #ccc !important;
 }
 
 
@@ -477,7 +502,7 @@ footer img {
   background-color: #49afcd !important;
 }
 
-.background-ack, .background-downtime {
+.background-ack, .background-downtime, .background-flapping {
   background-color: #777 !important;
 }
 

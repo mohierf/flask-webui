@@ -50,7 +50,6 @@ bundles = {
         'js/bootstrap.min.js',
         'js/metisMenu.min.js',
         'js/jquery.bxslider.min.js',
-        'js/Chart.min.js',
         'js/alertify.js',
         output='page-libs.js',
         filters='jsmin'),
@@ -64,6 +63,17 @@ bundles = {
         'css/alertify.css',
         output='page-libs.css',
         filters=['cssrewrite', 'cssmin']),
+
+    # Application page - charts assets
+    'charts_js': Bundle(
+        'js/Chart.Core.js',
+        'js/Chart.Doughnut.js',
+        'js/Chart.Bar.js',
+        'js/Chart.Line.js',
+        'js/Chart.PolarArea.js',
+        'js/Chart.Radar.js',
+        output='charts-libs.js',
+        filters='jsmin'),
 
     # Application page - own assets
     'app_js': Bundle(

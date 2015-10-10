@@ -560,6 +560,9 @@ class FrontEnd(object):
             :rtype: dict
         """
         ls = self.get_objects('livesynthesis', parameters, all_elements=all_elements)
+        if not ls:
+            return None
+
         ls = ls[0]
 
         # Services synthesis

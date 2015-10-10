@@ -20,8 +20,8 @@
 
 var refresh_logs=true;
 
-/* Default is an empty value for the search filter ... */
-var search_filter = "";
+/* Default is a string defined in WebUI configuration */
+var search_filter = app_search_string;
 
 /* Default is to set the page to reload each period defined in WebUI configuration */
 var refresh_timeout = app_refresh_period;
@@ -144,22 +144,13 @@ function do_refresh_header(){
  * => These elements are the real "dynamic" elements in the page content ...
  * ---------------------------------------------------------------------------
  */
-var queue = {
-   "nb_up": [],
-   "nb_unreachable": [],
-   "nb_down": [],
-
-   "nb_ok": [],
-   "nb_warning": [],
-   "nb_critical": []
-}
-function do_refresh_livestate(){
+function do_refresh_livestate(search){
    if (! $('#livestate-list').length) {
       // No refresh needed ...
       return false
    }
 
-   if (refresh_logs) console.debug("Refreshing system live state");
+   if (refresh_logs) console.debug("Refreshing system live state, filter: ", search);
 
    // Request livestate synthesis ...
    $.ajax({
@@ -176,87 +167,42 @@ function do_refresh_livestate(){
          return
       }
 
+      // Hosts pie chart
       if ($("#chart-hosts").length !== 0) {
          synthesis = html['livesynthesis']['hosts_synthesis'];
-         // Hosts pie chart
-         var data = [
-            {
-               value: synthesis['nb_up'],
-               color:"#5bb75b",
-               highlight: "#5AD3D1",
-               label: "Up"
-            },
-            {
-               value: synthesis['nb_unreachable'],
-               color: "#faa732",
-               highlight: "#5AD3D1",
-               label: "Unreachable"
-            },
-            {
-               value: synthesis['nb_down'],
-               color: "#da4f49",
-               highlight: "#5AD3D1",
-               label: "Down"
+
+         var data = [];
+         $.each(graph_hosts_states, function( index, value ) {
+            // Update table rows
+            row = pie_graph_hosts_parameters[value];
+            row['value'] = synthesis['nb_'+value]
+            data.push(row)
+
+            if (states_queue["nb_"+value].length > 10) {
+               states_queue["nb_"+value].shift();
             }
-          ]
-         if (queue["nb_up"].length > 10) {
-            queue["nb_up"].shift();
-         }
-         queue["nb_up"].push(synthesis['nb_up']);
-
-         if (queue["nb_unreachable"].length > 10) {
-            queue["nb_unreachable"].shift();
-         }
-         queue["nb_unreachable"].push(synthesis['nb_unreachable']);
-
-         if (queue["nb_down"].length > 10) {
-            queue["nb_down"].shift();
-         }
-         queue["nb_down"].push(synthesis['nb_down']);
+            states_queue["nb_"+value].push(synthesis['nb_'+value]);
+         });
 
          // Get the context of the canvas element we want to select
          var ctx = $("#chart-hosts canvas").get(0).getContext("2d");
          var myPieChart = new Chart(ctx).Pie(data);
          $("#chart-hosts span").html(synthesis['nb_elts'] + " hosts");
       }
+
+      // Hosts line chart
       if ($("#chart-hosts-serie").length !== 0) {
          synthesis = html['livesynthesis']['hosts_synthesis'];
-         // Line chart
-         var data = {
-            labels: ["-9", "-8", "-7", "-6", "-5", "-4", "-3", "-2", "-1", "0"],
-            datasets: [
-               {
-                  label: "Hosts up",
-                  fillColor: "rgba(91,183,91,0.2)",
-                  strokeColor: "rgba(91,183,91,1)",
-                  pointColor: "rgba(91,183,91,1)",
-                  pointStrokeColor: "#fff",
-                  pointHighlightFill: "#fff",
-                  pointHighlightStroke: "rgba(220,220,220,1)",
-                  data: queue["nb_up"]
-               },
-               {
-                  label: "Hosts unreachable",
-                  fillColor: "rgba(250,167,50,0.2)",
-                  strokeColor: "rgba(250,167,50,1)",
-                  pointColor: "rgba(250,167,50,1)",
-                  pointStrokeColor: "#fff",
-                  pointHighlightFill: "#fff",
-                  pointHighlightStroke: "rgba(151,187,205,1)",
-                  data: queue["nb_unreachable"]
-               },
-               {
-                  label: "Hosts down",
-                  fillColor: "rgba(218,79,73,0.2)",
-                  strokeColor: "rgba(218,79,73,1)",
-                  pointColor: "rgba(218,79,73,1)",
-                  pointStrokeColor: "#fff",
-                  pointHighlightFill: "#fff",
-                  pointHighlightStroke: "rgba(220,220,220,1)",
-                  data: queue["nb_down"]
-               }
-           ]
-         };
+
+         var data = [];
+         data['labels'] = line_graph_hosts_parameters['labels'];
+         data['datasets'] = [];
+         $.each(graph_hosts_states, function( index, value ) {
+            // Update table rows
+            row = line_graph_hosts_parameters['datasets'][value];
+            row['data'] = states_queue["nb_"+value];
+            data['datasets'].push(row);
+         });
 
          // Get the context of the canvas element we want to select
          var ctx = $("#chart-hosts-serie canvas").get(0).getContext("2d");
@@ -264,91 +210,47 @@ function do_refresh_livestate(){
          var myLineChart = new Chart(ctx).Line(data);
          $("#chart-hosts-serie span").html(synthesis['nb_elts'] + " hosts (progression)");
       }
+
+      // Services pie chart
       if ($("#chart-services").length !== 0) {
          synthesis = html['livesynthesis']['services_synthesis'];
-         // Pie chart
-         var data = [
-            {
-               value: synthesis['nb_ok'],
-               color:"#5bb75b",
-               highlight: "#5AD3D1",
-               label: "Ok"
-            },
-            {
-               value: synthesis['nb_warning'],
-               color: "#faa732",
-               highlight: "#5AD3D1",
-               label: "Warning"
-            },
-            {
-               value: synthesis['nb_critical'],
-               color: "#da4f49",
-               highlight: "#5AD3D1",
-               label: "Critical"
+
+         var data = [];
+         $.each(graph_services_states, function( index, value ) {
+            // Update table rows
+            row = pie_graph_services_parameters[value];
+            row['value'] = synthesis['nb_'+value]
+            data.push(row)
+
+            if (states_queue["nb_"+value].length > 10) {
+               states_queue["nb_"+value].shift();
             }
-          ]
-         if (queue["nb_ok"].length > 10) {
-            queue["nb_ok"].shift();
-         }
-         queue["nb_ok"].push(synthesis['nb_ok']);
-
-         if (queue["nb_warning"].length > 10) {
-            queue["nb_warning"].shift();
-         }
-         queue["nb_warning"].push(synthesis['nb_warning']);
-
-         if (queue["nb_critical"].length > 10) {
-            queue["nb_critical"].shift();
-         }
-         queue["nb_critical"].push(synthesis['nb_critical']);
+            states_queue["nb_"+value].push(synthesis['nb_'+value]);
+         });
 
          // Get the context of the canvas element we want to select
          var ctx = $("#chart-services canvas").get(0).getContext("2d");
          var myPieChart = new Chart(ctx).Pie(data);
          $("#chart-services span").html(synthesis['nb_elts'] + " services");
       }
+
+      // Services line chart
       if ($("#chart-services-serie").length !== 0) {
          synthesis = html['livesynthesis']['services_synthesis'];
-         // Line chart
-         var data = {
-            labels: ["-9", "-8", "-7", "-6", "-5", "-4", "-3", "-2", "-1", "0"],
-            datasets: [
-               {
-                  label: "Services ok",
-                  fillColor: "rgba(91,183,91,0.2)",
-                  strokeColor: "rgba(91,183,91,1)",
-                  pointColor: "rgba(91,183,91,1)",
-                  pointStrokeColor: "#fff",
-                  pointHighlightFill: "#fff",
-                  pointHighlightStroke: "rgba(220,220,220,1)",
-                  data: queue["nb_ok"]
-               },
-               {
-                  label: "Services warning",
-                  fillColor: "rgba(250,167,50,0.2)",
-                  strokeColor: "rgba(250,167,50,1)",
-                  pointColor: "rgba(250,167,50,1)",
-                  pointStrokeColor: "#fff",
-                  pointHighlightFill: "#fff",
-                  pointHighlightStroke: "rgba(151,187,205,1)",
-                  data: queue["nb_warning"]
-               },
-               {
-                  label: "Services critical",
-                  fillColor: "rgba(218,79,73,0.2)",
-                  strokeColor: "rgba(218,79,73,1)",
-                  pointColor: "rgba(218,79,73,1)",
-                  pointStrokeColor: "#fff",
-                  pointHighlightFill: "#fff",
-                  pointHighlightStroke: "rgba(220,220,220,1)",
-                  data: queue["nb_critical"]
-               }
-           ]
-         };
+
+         var data = [];
+         data['labels'] = line_graph_services_parameters['labels'];
+         data['datasets'] = [];
+         $.each(graph_services_states, function( index, value ) {
+            console.log(index, value)
+            // Update table rows
+            row = line_graph_services_parameters['datasets'][value];
+            row['data'] = states_queue["nb_"+value];
+            data['datasets'].push(row);
+         });
 
          // Get the context of the canvas element we want to select
          var ctx = $("#chart-services-serie canvas").get(0).getContext("2d");
-         // var ctx = document.getElementById("myChart1").getContext("2d");
          var myLineChart = new Chart(ctx).Line(data, {
             bezierCurve: true,
             legendTemplate : [
@@ -374,7 +276,10 @@ function do_refresh_livestate(){
       // Request to update each possible Business impact ...
       $.ajax({
          url: "/refresh_livestate",
-         data: { 'bi': bi },
+         data: {
+            "bi": bi,
+            "filter": search
+         },
          method: "get",
          dataType: "json"
       })
@@ -397,7 +302,10 @@ function do_refresh_livestate(){
 
          if (! $('#livestate-bi-'+bi).length) {
             $('#livestate-list').append(html['livestate']['panel_bi']);
+
+            // Update table rows ...
             $.each(html['livestate']['rows'], function( index, value ) {
+               if (refresh_logs) console.debug("Row:", index);
                // Update table rows
                $('#livestate-bi-'+bi+' table tbody').append(value);
             });
@@ -405,10 +313,14 @@ function do_refresh_livestate(){
             $('#livestate-bi-'+bi).hide(1000, function() {
                // Replace existing panel ...
                $('#livestate-bi-'+bi).replaceWith(html['livestate']['panel_bi']);
+
+               // Update table rows ...
                $.each(html['livestate']['rows'], function( index, value ) {
+                  if (refresh_logs) console.debug("Row:", index);
                   // Update table rows
                   $('#livestate-bi-'+bi+' table tbody').append(value);
                });
+
                $('#livestate-bi-'+bi).show(500);
             });
          }
@@ -420,20 +332,18 @@ function do_refresh_livestate(){
 /* We will try to see if the UI is not in restating mode, and so
    don't have enough data to refresh the page as it should ... */
 function do_refresh() {
-   if (refresh_logs) console.debug("Refreshing search string, timeout: ", refresh_timeout);
+   if (refresh_logs) console.debug("Refreshing page, timeout: ", refresh_timeout);
 
-   // We will first check if the backend is available or not. It's useless to refresh
-   // if the backend is reloading, because it will prompt for login, but waiting a little
-   // will make the data available.
+   // We will first get the application parameters (search string, ...)
 
    // Request search string ...
    $.ajax({
-      url: "/search_string",
+      url: "/app_settings",
       method: "get",
       dataType: "json"
    })
    .done(function(html, textStatus, jqXHR) {
-      if (refresh_logs) console.log(html);
+      search_filter = html.search_string;
 
       // Refresh current page ...
 
@@ -441,7 +351,7 @@ function do_refresh() {
       do_refresh_header();
 
       // Refresh livestate ...
-      do_refresh_livestate();
+      do_refresh_livestate(search_filter);
    });
 }
 
@@ -515,6 +425,9 @@ function reset_refresh() {
    if (refresh_logs) console.debug("Refresh period restarted: " + nb_refresh_retry + " attempts, " + refresh_timeout + " seconds");
 }
 
+/*
+ * Global Ajax event handlers - all Ajax requests are concerned ...
+ */
 
 // Global Ajax event handler - First Ajax request sent ...
 $( document ).ajaxStart(function() {
@@ -538,34 +451,13 @@ $( document ).ajaxError(function( event, jqxhr, settings, thrownError ) {
    if (refresh_logs) console.error(settings);
 });
 
+/*
+ * Document loaded
+ */
 $( document ).ready(function() {
    // Start refresh periodical check ...
    setInterval("check_refresh();", 1000);
 
    // Force first refresh ...
    do_refresh();
-
-   // Search filter changed in the header input form ...
-   $('#nav-bar-form').on('submit', function(event) {
-      var $form = $(this);
-
-      // Block automatic submission ...
-      event.preventDefault();
-
-      $.ajax({
-         type: $form.attr('method'),
-         url: $form.attr('action'),
-         data: $form.serialize()
-      })
-      .done(function(html, textStatus, jqXHR) {
-         if (refresh_logs) console.debug("Refreshing search string: ", html);
-
-      })
-      .fail(function( jqXHR, textStatus, errorThrown ) {
-         if (refresh_logs) console.error(jqXHR, errorThrown);
-         if (refresh_logs) console.error(jqXHR. responseText);
-      })
-      .always(function() {
-      });
-   });
 });

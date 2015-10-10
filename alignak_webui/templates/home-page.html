@@ -3,6 +3,10 @@
 {% extends "layout.html" %}
 {% block title %}Home page{% endblock %}
 {% block body %}
+    {% assets "charts_js" %}
+    <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+    {% endassets %}
+
     {% if settings.get('layout.livestate-graphs', 'false') != "false" %}
         {% include '_livestate-graphs.html' %}
     {% endif %}

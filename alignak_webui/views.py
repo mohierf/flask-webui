@@ -58,7 +58,7 @@ def ping():
     return 'pong'
 
 
-@app.route('/search_string', methods=['GET', 'POST'])
+@app.route('/app_settings', methods=['GET', 'POST'])
 def set_search_string():
     """
     Set search string ...
@@ -71,12 +71,21 @@ def set_search_string():
     """
     app.logger.info("Helper search string: %s", helper)
     if request.method == 'POST':
-        helper.search_string = request.form['search_string']
-        app.logger.info("New helper search string: %s", helper.search_string)
-        return str(helper.search_string)
+        if 'search_string' in request.form:
+            helper.search_string = request.form['search_string']
+            app.logger.info("New helper search string: %s", helper.search_string)
+        if 'search_name' in request.form:
+            helper.search_name = request.form['search_name']
+            app.logger.info("New helper search name: %s", helper.search_name)
 
+    data = {
+        "search_string": helper.search_string,
+        "search_name": helper.search_name
+    }
+
+    if request.method == 'POST':
+        return str(data)
     if request.method == 'GET':
-        data = {"search_string": helper.search_string}
         res = jsonify(**data)
         res.status_code = 200
         return res
@@ -121,7 +130,12 @@ def refresh_livestate():
 
     Update system live state and build header elements
     """
-    data = {'livestate': helper.get_html_livestate(int(request.args.get('bi', 0)))}
+    data = {
+        'livestate': helper.get_html_livestate(
+            int(request.args.get('bi', 0)),
+            request.args.get('filter', None)
+        )
+    }
 
     res = jsonify(**data)
     res.status_code = 200
@@ -135,7 +149,9 @@ def get_livesynthesis():
     Get application livestate synthesis
 
     """
-    data = {'livesynthesis': helper.get_livesynthesis()}
+    data = {
+        'livesynthesis': helper.get_livesynthesis()
+    }
 
     res = jsonify(**data)
     res.status_code = 200

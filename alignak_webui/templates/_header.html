@@ -46,7 +46,7 @@
                 </a>
             </li>
 
-            {% if settings.get('ui.one_eye', 'false') != "false" %}
+            {% if settings.get('ui.one_eye', '0') != '0' %}
             <li class="hidden-xs hidden-sm">
                 <a tabindex="0" role="button" title="One Eye dashboard" href="/dashboard/currently">
                     <span id="one_eye" class="fa-stack">
@@ -57,7 +57,7 @@
             </li>
             {% endif %}
 
-            {% if settings.get('ui.refresh', 'false') != "false" %}
+            {% if settings.get('ui.refresh', '0') != '0' %}
             <li class="hidden-xs">
                 <a tabindex="0" role="button" title="Refreshing page" href="#" action="toggle-page-refresh">
                     <span id="app_refreshing" class="fa-stack">
@@ -68,7 +68,7 @@
             </li>
             {% endif %}
 
-            {% if settings.get('ui.play_sound', 'false') != "false" %}
+            {% if settings.get('ui.play_sound', '0') != '0' %}
             <li class="hidden-xs hidden-sm">
                 <a tabindex="0" role="button" title="Sound alerting" href="#" action="toggle-sound-alert">
                     <span id="sound_alerting" class="fa-stack">
@@ -116,7 +116,7 @@
     </div>
 </nav>
 
-{% if settings.get('ui.refresh', 'false') != "false" %}
+{% if settings.get('ui.refresh', '0') != '0' %}
 <script type="text/javascript">
     // Set this variable to be used in page-refresh.js functions ...
     var app_refresh_period = {{ settings.get('ui.refresh_rate', 60) }};
@@ -146,7 +146,7 @@
 </script>
 {% endif %}
 
-{% if settings.get('ui.play_sound', 'false') != "false" %}
+{% if settings.get('ui.play_sound', '0') != '0' %}
 <audio id="alert-sound" volume="1.0">
    <source src="/static/sound/alert.wav" type="audio/wav">
    Your browser does not support the <code>HTML5 Audio</code> element.

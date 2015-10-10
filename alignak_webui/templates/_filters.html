@@ -1,5 +1,6 @@
-<form id ="nav-bar-form" role="form" class="navbar-form hidden-xs" method="POST" action="/search_string">
-    <div class="dropdown form-group text-left">
+<form id ="nav-bar-form" role="form" class="navbar-form hidden-xs" method="POST" action="/app_settings">
+    {% if settings.get('ui.filters', '0') != '0' %}
+    <div class="dropdown form-group">
         <button class="btn btn-default dropdown-toggle" type="button" id="filters_menu" data-toggle="dropdown" aria-expanded="true">
             <i class="fa fa-filter"></i>
             <span class="hidden-sm hidden-xs hidden-md">Filters</span>
@@ -24,14 +25,18 @@
             <li role="presentation"><a role="menuitem" onclick="display_modal('/modal/helpsearch')"><strong><i class="fa fa-question-circle"></i> Search syntax</strong></a></li>
         </ul>
     </div>
+    {% endif %}
+    {% if settings.get('ui.search_form', '0') != '0' %}
     <div class="form-group">
         <label class="sr-only" for="search">Filter</label>
         <div class="input-group">
-            <span class="input-group-addon hidden-xs hidden-sm"><i class="fa fa-search"></i> {{ helper.search_name }}</span>
-            <input class="form-control" type="search" id="search_string" name="search_string" value="{{ helper.search_string }}">
+            <span class="input-group-addon hidden-xs hidden-sm"><i class="fa fa-search"></i> {{ helper.search_name if helper.search_name else '' }}</span>
+            <input class="form-control" type="search" id="search_string" name="search_string" value="{{ helper.search_string if helper.search_string else '' }}">
         </div>
     </div>
-    <div class="dropdown form-group text-left">
+    {% endif %}
+    {% if settings.get('ui.bookmarks', '0') != '0' %}
+    <div class="dropdown form-group">
         <button class="btn btn-default dropdown-toggle" type="button" id="bookmarks_menu" data-toggle="dropdown" aria-expanded="true">
             <i class="fa fa-bookmark"></i>
             <span class="hidden-sm hidden-xs hidden-md">Bookmarks</span>
@@ -42,4 +47,32 @@
             </script>
         </ul>
     </div>
+    {% endif %}
 </form>
+
+{% if settings.get('ui.search_form', '0') != '0' %}
+<script type="text/javascript">
+    // Set this variable to be used in page-refresh.js functions ...
+    var app_search_string = "{{ settings.get('ui.search_string', '') }}";
+
+    // Search filter changed in the header input form ...
+    $('#nav-bar-form').on('submit', function(event) {
+        var $form = $(this);
+
+        // Block automatic submission ...
+        event.preventDefault();
+
+        $.ajax({
+            type: $form.attr('method'),
+            url: $form.attr('action'),
+            data: $form.serialize()
+        })
+        .done(function(html, textStatus, jqXHR) {
+            console.log("Refreshing search string: ", html);
+        })
+        .fail(function( jqXHR, textStatus, errorThrown ) {
+            console.error("Ajax error.", errorThrown, textStatus);
+        });
+    });
+</script>
+{% endif %}

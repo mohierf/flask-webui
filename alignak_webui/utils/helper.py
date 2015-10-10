@@ -35,6 +35,7 @@ import itertools
 import json
 from logging import getLogger
 from alignak_webui import app, frontend
+from flask_login import current_user
 
 logger = getLogger(__name__)
 
@@ -46,16 +47,16 @@ class Helper(object):
     Functions used in HTML templates to help building some elements
     """
     host_states = [
-        'UP', 'DOWN', 'UNREACHABLE', 'PENDING', 'UNKNOWN'
+        'UP', 'DOWN', 'UNREACHABLE'
     ]
     extra_host_states = [
-        'FLAPPING', 'ACK', 'DOWNTIME'
+        'FLAPPING', 'ACKNOWLEDGED', 'IN_DOWNTIME'
     ]
     service_states = [
-        'OK', 'CRITICAL', 'WARNING', 'PENDING', 'UNKNOWN'
+        'OK', 'CRITICAL', 'WARNING', 'UNKNOWN'
     ]
     extra_service_states = [
-        'FLAPPING', 'ACK', 'DOWNTIME'
+        'FLAPPING', 'ACKNOWLEDGED', 'IN_DOWNTIME'
     ]
 
     search_name = None
@@ -65,6 +66,7 @@ class Helper(object):
         """Store application reference"""
         self.app = application
         self.livestate = None
+        self.livestate_age = None
 
     @staticmethod
     def print_date(timestamp, fmt='%Y-%m-%d %H:%M:%S'):
@@ -271,7 +273,7 @@ class Helper(object):
         :type obj_type: string
         :param state: host state or service state
         :type state: string
-        :param extra: DOWNTIME, ACK or FLAPPING
+        :param extra: IN_DOWNTIME, ACKNOWLEDGED or FLAPPING
         :type extra: string
         :param text: include text in the response
         :type text: boolean
@@ -283,11 +285,11 @@ class Helper(object):
         if obj_type not in ['host', 'service']:
             return 'n/a'
 
-        if (obj_type == 'host' and state.upper() not in Helper.host_states) or (
+        if (obj_type == 'host' and state and state.upper() not in Helper.host_states) or (
                 obj_type == 'host' and extra and extra.upper() not in Helper.extra_host_states):
             return 'n/a'
 
-        if (obj_type == 'service' and state.upper() not in Helper.service_states) or (
+        if (obj_type == 'service' and state and state.upper() not in Helper.service_states) or (
                 obj_type == 'service' and
                 extra and extra.upper() not in Helper.extra_service_states):
             return 'n/a'
@@ -298,7 +300,7 @@ class Helper(object):
         # Text
         res_icon_text = app.config.get(
             "ui.%s_text_%s" % (obj_type, state.lower()),
-            'unknown'
+            'State is insignificant'
         )
         res_text = res_icon_text
 
@@ -333,14 +335,14 @@ class Helper(object):
         if extra and extra == 'FLAPPING':
             res_extra = "font-%s" % state.lower()
         res_style = ""
-        if extra and extra in ['ACK', 'DOWNTIME']:
+        if extra and extra in ['ACKNOWLEDGED', 'IN_DOWNTIME']:
             res_style = 'style="opacity: 0.5" '
 
         # Assembling ...
         res_icon = res_icon_global
         res_icon = res_icon.replace("##back##", res_icon_back)
         res_icon = res_icon.replace("##front##", res_icon_front)
-        res_icon = res_icon.replace("##state##", state)
+        res_icon = res_icon.replace("##state##", state.lower())
         if not disabled:
             res_icon = res_icon.replace("##font##", "font-" + state.lower())
         else:
@@ -438,9 +440,15 @@ class Helper(object):
         host_name and service_description fields are embedded. Those fields are dictionaries of
         fields describing an host and a service.
 
+        :param parameters: search parameters for the backend
+        :type parameters: dict
+
         :return: list of livestate elements
         :rtype: list
         """
+        if self.livestate_age and (int(time.time()) - self.livestate_age) <= 300:
+            return self.livestate
+
         if not parameters:
             parameters = {}
 
@@ -453,6 +461,7 @@ class Helper(object):
 
         self.livestate = frontend.get_livestate(parameters=parameters)
         hosts_ids = {}
+        # Searching for hosts first ...
         for item in self.livestate:
             if not item['service_description']:
                 item['type'] = 'host'
@@ -468,9 +477,11 @@ class Helper(object):
                     if item['host_name']['display_name']:
                         item['friendly_name'] = item['host_name']['display_name']
 
+                # Build an hosts cache ...
                 if not item['host_name']['_id'] in hosts_ids:
                     hosts_ids[item['host_name']['_id']] = item['host_name']['host_name']
 
+        # Searching for services next ...
         for item in self.livestate:
             if item['service_description']:
                 item['type'] = 'service'
@@ -489,13 +500,17 @@ class Helper(object):
                     if item['service_description']['display_name']:
                         item['friendly_name'] = item['service_description']['display_name']
 
+        self.livestate_age = int(time.time())
         return self.livestate
 
-    def get_html_livestate(self, bi=0):
+    def get_html_livestate(self, bi=0, filter=None):
         """
         Get HTML formatted live state
 
         Update system live synthesis and build header elements
+
+        :param bi: business impact
+        :type bi: int
 
         :return: hosts_states and services_states HTML strings in a dictionary
         :rtype: dict
@@ -573,92 +588,87 @@ class Helper(object):
                 long_output
             )
             rows.append(tr)
-            # tr = """
-            # <tr>
-                # <td colspan="20" class="hiddenRow">
-                    # <div class="accordion-body collapse" id="details-{{ helper.get_html_id(item['type'], item['name']) }}">
-                        # <table class="table table-condensed">
-                            # <tr>
-                            # {% if item['type'] == "host" %}
-                                # {% if item['host_name']['passive_checks_enabled'] %}
-                                # <td>
-                                    # <i class="fa fa-arrow-left" title="Passive checks are enabled."></i>
-                                    # {% if item['host_name']['freshness_threshold'] %}
-                                    # <i title="Freshness check is enabled">(Freshness threshold: {{item['host_name']['freshness_threshold']}} seconds)</i>
-                                    # {% endif %}
-                                # </td>
-                                # {% endif %}
-                                # {% if item['host_name']['active_checks_enabled'] %}
-                                # <td>
-                                    # <i class="fa fa-arrow-right" title="Active checks are enabled."></i>
-                                    # <i>Last check <strong>{{ helper.print_duration(item['last_check'], duration_only=True, x_elts=2)|safe }}</strong>, next check in <strong>???</strong>, attempt <strong>???</strong></i>
-                                # </td>
-                                # {% endif %}
-                            # {% else %}
-                                # {% if item['service_description']['passive_checks_enabled'] %}
-                                # <td>
-                                    # <i class="fa fa-arrow-left" title="Passive checks are enabled."></i>
-                                    # {% if item['service_description']['freshness_threshold'] %}
-                                    # <i title="Freshness check is enabled">(Freshness threshold: {{item['service_description']['freshness_threshold']}} seconds)</i>
-                                    # {% endif %}
-                                # </td>
-                                # {% endif %}
-                                # {% if item['service_description']['active_checks_enabled'] %}
-                                # <td>
-                                    # <i class="fa fa-arrow-right" title="Active checks are enabled."></i>
-                                    # <i>Last check <strong>{{ helper.print_duration(item['last_check'], duration_only=True, x_elts=2)|safe }}</strong>, next check in <strong>???</strong>, attempt <strong>???</strong></i>
-                                # </td>
-                                # {% endif %}
-                            # {% endif %}
-                                # {% if current_user.can_action() %}
-                                # <td align="right">
-                                    # <div class="btn-group" role="group" data-type="actions" aria-label="Actions">
-                                        # <button class="btn btn-default btn-xs"
-                                        # data-type="action" action="event-handler"
-                                        # data-toggle="tooltip" data-placement="bottom" title="Try to fix (launch event handler)"
-                                        # data-element="test">
-                                        # <i class="fa fa-magic"></i><span class="hidden-sm hidden-xs"> Try to fix</span>
-                                        # </button>
-                                        # <button class="btn btn-default btn-xs"
-                                        # data-type="action" action="recheck"
-                                        # data-toggle="tooltip" data-placement="bottom" title="Launch the check command"
-                                        # data-element="test">
-                                        # <i class="fa fa-refresh"></i><span class="hidden-sm hidden-xs"> Refresh</span>
-                                        # </button>
-                                        # <button class="btn btn-default btn-xs"
-                                        # data-type="action" action="check-result"
-                                        # data-toggle="tooltip" data-placement="bottom" title="Submit a check result"
-                                        # data-element="test"
-                                        # data-user="utilisateur">
-                                        # <i class="fa fa-share"></i><span class="hidden-sm hidden-xs"> Submit check result</span>
-                                        # </button>
-                                        # <button class="btn btn-default btn-xs"
-                                        # data-type="action" action="add-acknowledge"
-                                        # data-toggle="tooltip" data-placement="bottom" title="Acknowledge this problem"
-                                        # data-element="test">
-                                        # <i class="fa fa-check"></i><span class="hidden-sm hidden-xs"> Acknowledge</span>
-                                        # </button>
-                                        # <button class="btn btn-default btn-xs"
-                                        # data-type="action" action="schedule-downtime"
-                                        # data-toggle="tooltip" data-placement="bottom" title="Schedule a downtime for this problem"
-                                        # data-element="test">
-                                        # <i class="fa fa-ambulance"></i><span class="hidden-sm hidden-xs"> Downtime</span>
-                                        # </button>
-                                        # <button class="btn btn-default btn-xs"
-                                        # data-type="action" action="ignore-checks"
-                                        # data-toggle="tooltip" data-placement="bottom" title="Ignore checks for the service (disable checks, notifications, event handlers and force Ok)"
-                                        # data-element="test"
-                                        # data-user="utilisateur">
-                                        # <i class="fa fa-eraser"></i><span class="hidden-sm hidden-xs"> Remove</span>
-                                        # </button>
-                                    # </div>
-                                # </td>
-                                # {% endif %}
-                            # </tr>
-                        # </table>
-                    # </div>
-                # </td>
-            # </tr>"""
+
+            if item['type'] == "host":
+                passive_checks_enabled = item['host_name']['passive_checks_enabled']
+                freshness_threshold = item['host_name']['freshness_threshold']
+                active_checks_enabled = item['host_name']['active_checks_enabled']
+            else:
+                passive_checks_enabled = item['service_description']['passive_checks_enabled']
+                freshness_threshold = item['service_description']['freshness_threshold']
+                active_checks_enabled = item['service_description']['passive_checks_enabled']
+            tr2= """
+            <tr>
+                <td colspan="20" class="hiddenRow">
+                    <div class="accordion-body collapse" id="details-%s">""" % (id)
+            # if passive_checks_enabled:
+                # tr+= """
+                    # <td>
+                        # <i class="fa fa-arrow-left" title="Passive checks are enabled."></i>"""
+            # if freshness_threshold:
+                # tr+= """
+                        # <i title="Freshness check is enabled">(Freshness threshold: %s seconds)</i>
+                    # </td>""" % (freshness_threshold)
+            # if active_checks_enabled:
+                # tr+= """
+                    # <td>
+                        # <i class="fa fa-arrow-right" title="Active checks are enabled."></i>
+                        # <i>Last check <strong>%s</strong>, next check in <strong>???</strong>, attempt <strong>???</strong></i>
+                    # </td>""" % (
+                        # helper.print_duration(item['last_check'], duration_only=True, x_elts=2)
+                    # )
+
+            # if current_user and current_user.can_action():
+                # tr+= """
+                    # <td align="right">
+                        # <div class="btn-group" role="group" data-type="actions" aria-label="Actions">
+                            # <button class="btn btn-default btn-xs"
+                            # data-type="action" action="event-handler"
+                            # data-toggle="tooltip" data-placement="bottom" title="Try to fix (launch event handler)"
+                            # data-element="test">
+                            # <i class="fa fa-magic"></i><span class="hidden-sm hidden-xs"> Try to fix</span>
+                            # </button>
+                            # <button class="btn btn-default btn-xs"
+                            # data-type="action" action="recheck"
+                            # data-toggle="tooltip" data-placement="bottom" title="Launch the check command"
+                            # data-element="test">
+                            # <i class="fa fa-refresh"></i><span class="hidden-sm hidden-xs"> Refresh</span>
+                            # </button>
+                            # <button class="btn btn-default btn-xs"
+                            # data-type="action" action="check-result"
+                            # data-toggle="tooltip" data-placement="bottom" title="Submit a check result"
+                            # data-element="test"
+                            # data-user="utilisateur">
+                            # <i class="fa fa-share"></i><span class="hidden-sm hidden-xs"> Submit check result</span>
+                            # </button>
+                            # <button class="btn btn-default btn-xs"
+                            # data-type="action" action="add-acknowledge"
+                            # data-toggle="tooltip" data-placement="bottom" title="Acknowledge this problem"
+                            # data-element="test">
+                            # <i class="fa fa-check"></i><span class="hidden-sm hidden-xs"> Acknowledge</span>
+                            # </button>
+                            # <button class="btn btn-default btn-xs"
+                            # data-type="action" action="schedule-downtime"
+                            # data-toggle="tooltip" data-placement="bottom" title="Schedule a downtime for this problem"
+                            # data-element="test">
+                            # <i class="fa fa-ambulance"></i><span class="hidden-sm hidden-xs"> Downtime</span>
+                            # </button>
+                            # <button class="btn btn-default btn-xs"
+                            # data-type="action" action="ignore-checks"
+                            # data-toggle="tooltip" data-placement="bottom" title="Ignore checks for the service (disable checks, notifications, event handlers and force Ok)"
+                            # data-element="test"
+                            # data-user="utilisateur">
+                            # <i class="fa fa-eraser"></i><span class="hidden-sm hidden-xs"> Remove</span>
+                            # </button>
+                        # </div>
+                    # </td>"""
+
+            tr2+= """
+                    </div>
+                </td>
+            </tr>"""
+
+            rows.append(tr2)
 
         panel_bi = """
             <div id="livestate-bi-%d" class="panel panel-default">
@@ -707,14 +717,29 @@ class Helper(object):
         """
         ls = self.get_livesynthesis()
 
+        if not ls:
+            return {
+                'hosts_states_popover': "",
+                'services_states_popover': "",
+                'hosts_state': """
+                    <a tabindex="0" role="button" title="Overall hosts states unknown">
+                        <i class="fa fa-server"></i>
+                        <span class="label label-as-badge label-unknown">?</span>
+                    </a>
+                """,
+                'services_state': """
+                    <a tabindex="0" role="button" title="Overall services states unknown">
+                        <i class="fa fa-bars"></i>
+                        <span class="label label-as-badge label-unknown">?</span>
+                    </a>
+                """
+            }
+
         hosts_states_popover = ''
-        nb_problems = 0
         lsh = ls['hosts_synthesis']
-        for state in itertools.chain(Helper.host_states, Helper.extra_host_states):
+        for state in Helper.host_states:
             try:
                 nb = int(lsh["nb_%s" % state.lower()])
-                if state in ['DOWN', 'UNREACHABLE']:
-                    nb_problems += nb
                 pct = float(lsh["pct_%s" % state.lower()])
                 label = "<small>%d (%s %%)</small>" % (nb, pct)
                 hosts_states_popover += '<td data-state="%s" data-count="%d">%s</td>' % (
@@ -727,25 +752,48 @@ class Helper(object):
             except KeyError:
                 continue
 
+        for state in Helper.extra_host_states:
+            try:
+                nb = int(lsh["nb_%s" % state.lower()])
+                pct = float(lsh["pct_%s" % state.lower()])
+                label = "<small>%d (%s %%)</small>" % (nb, pct)
+                hosts_states_popover += '<td data-state="%s" data-count="%d">%s</td>' % (
+                    state.lower(),
+                    nb,
+                    helper.get_html_state(
+                        "host", "", extra=state, label=label, disabled=nb
+                    )
+                )
+            except KeyError:
+                continue
+
         hosts_states_popover = """<table class="table table-invisible table-condensed"><tbody>
             <tr data-count="%d" data-problems="%d">%s</tr>
-            </tbody></table>""" % (int(lsh["nb_elts"]), nb_problems, hosts_states_popover)
+            </tbody></table>""" % (int(lsh["nb_elts"]), int(lsh["nb_problems"]), hosts_states_popover)
+
+        overall_state = "up"
+        if float(lsh["pct_problems"]) >= 100.0 - float(app.config.get("ui.hosts_warning", 5)):
+            overall_state = "unreachable"
+        if float(lsh["pct_problems"]) >= 100.0 - float(app.config.get("ui.hosts_critical", 5)):
+            overall_state = "down"
 
         hosts_state = """
             <a tabindex="0" role="button" title="Overall hosts states, %d hosts, %d problems">
                 <i class="fa fa-server"></i>
                 <span class="label label-as-badge label-%s">%d</span>
             </a>
-            """ % (int(lsh["nb_elts"]), nb_problems, "success", nb_problems)
+            """ % (
+                int(lsh["nb_elts"]),
+                int(lsh["nb_problems"]),
+                overall_state,
+                int(lsh["nb_problems"])
+            )
 
         services_states_popover = ''
-        nb_problems = 0
         lss = ls['services_synthesis']
-        for state in itertools.chain(Helper.service_states, Helper.extra_service_states):
+        for state in Helper.service_states:
             try:
                 nb = int(lss["nb_%s" % state.lower()])
-                if state in ['WARNING', 'CRITICAL']:
-                    nb_problems += nb
                 pct = float(lss["pct_%s" % state.lower()])
                 label = "<small>%s (%s %%)</small>" % (nb, pct)
                 services_states_popover += '<td data-state="%s" data-count="%d">%s</td>' % (
@@ -758,18 +806,44 @@ class Helper(object):
             except KeyError:
                 continue
 
+        for state in Helper.extra_service_states:
+            try:
+                nb = int(lss["nb_%s" % state.lower()])
+                pct = float(lss["pct_%s" % state.lower()])
+                label = "<small>%s (%s %%)</small>" % (nb, pct)
+                services_states_popover += '<td data-state="%s" data-count="%d">%s</td>' % (
+                    state.lower(),
+                    nb,
+                    helper.get_html_state(
+                        "service", "", state, label=label, disabled=nb
+                    )
+                )
+            except KeyError:
+                continue
+
         services_states_popover = """
             <table class="table table-invisible table-condensed"><tbody>
             <tr data-count="%d" data-problems="%d">%s</tr>
             </tbody></table>
-            """ % (int(lss["nb_elts"]), nb_problems, services_states_popover)
+            """ % (int(lss["nb_elts"]), int(lss["nb_problems"]), services_states_popover)
+
+        overall_state = "ok"
+        if float(lss["pct_problems"]) >= 100.0 - float(app.config.get("ui.services_warning", 5)):
+            overall_state = "warning"
+        if float(lss["pct_problems"]) >= 100.0 - float(app.config.get("ui.services_critical", 5)):
+            overall_state = "critical"
 
         services_state = """
             <a tabindex="0" role="button" title="Overall services states, %d services, %d problems">
                 <i class="fa fa-bars"></i>
                 <span class="label label-as-badge label-%s">%d</span>
             </a>
-            """ % (int(lss["nb_elts"]), nb_problems, "success", nb_problems)
+            """ % (
+                int(lss["nb_elts"]),
+                int(lss["nb_problems"]),
+                overall_state,
+                int(lsh["nb_problems"])
+            )
 
         return {
             'hosts_states_popover': hosts_states_popover,
@@ -778,30 +852,25 @@ class Helper(object):
             'services_state': services_state
         }
 
-    def search_hosts_and_services(self, search, sorter=None):
-        """ Search hosts and services.
+    def search_livestate(self, search, sorter=None):
+        """
+        Search in items list.
 
-            This method is the heart of the datamanager. All other methods should be
-            based on this one.
-
-            :param search: Search string
-            :type search: str
-            :param get_impacts: should impacts be included in the list?
-            :type get_impacts: boolean
-            :param sorter: function to sort the items. default=None (means no sorting)
-            :type sorter: function
-            :return: list of hosts and services
-            :rtype: list
+        :param search: Search string
+        :type search: str
+        :param items: list of items to search in, if None, the function gets the system livestate
+        :type items: list
+        :param sorter: function to sort the items. default=None (means no sorting)
+        :type sorter: function
+        :return: list of hosts and services
+        :rtype: list
         """
         logger.debug("searching, pattern: %s", search)
-
-        if not self.livestate:
-            self.livestate = self.get_livestate()
 
         items = self.livestate
         if not items:
             logger.warning("searching, livestate is empty")
-            return None
+            return []
         logger.debug("searching, livestate: %d items", len(items))
 
         search_patterns = [s for s in search.split(' ')]
