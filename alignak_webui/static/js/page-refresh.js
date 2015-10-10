@@ -252,7 +252,6 @@ function do_refresh_livestate(search){
          // Get the context of the canvas element we want to select
          var ctx = $("#chart-services-serie canvas").get(0).getContext("2d");
          var myLineChart = new Chart(ctx).Line(data, {
-            bezierCurve: true,
             legendTemplate : [
                "<ul class=\"<%=name.toLowerCase()%>-legend\">",
                   "<% for (var i=0; i<datasets.length; i++){%>",

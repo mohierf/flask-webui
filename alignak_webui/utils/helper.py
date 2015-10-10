@@ -769,7 +769,11 @@ class Helper(object):
 
         hosts_states_popover = """<table class="table table-invisible table-condensed"><tbody>
             <tr data-count="%d" data-problems="%d">%s</tr>
-            </tbody></table>""" % (int(lsh["nb_elts"]), int(lsh["nb_problems"]), hosts_states_popover)
+            </tbody></table>""" % (
+                int(lsh["nb_elts"]),
+                int(lsh["nb_problems"]),
+                hosts_states_popover
+            )
 
         overall_state = "up"
         if float(lsh["pct_problems"]) >= 100.0 - float(app.config.get("ui.hosts_warning", 5)):
@@ -842,7 +846,7 @@ class Helper(object):
                 int(lss["nb_elts"]),
                 int(lss["nb_problems"]),
                 overall_state,
-                int(lsh["nb_problems"])
+                int(lss["nb_problems"])
             )
 
         return {

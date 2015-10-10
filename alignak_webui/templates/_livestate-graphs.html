@@ -57,6 +57,7 @@
 
     var graph_hosts_states = "{{ settings.get('layout.livestate-graphs-hosts-states', 'up,down,unreachable') }}";
     graph_hosts_states = graph_hosts_states.split(',');
+    console.log("Hosts graphs states:", graph_hosts_states);
     var pie_graph_hosts_parameters = {
         "up": {
             color:"#5bb75b",
@@ -109,6 +110,7 @@
 
     var graph_services_states = "{{ settings.get('layout.livestate-graphs-services-states', 'ok,warning,critical,unknown') }}";
     graph_services_states = graph_services_states.split(',');
+    console.log("Services graphs states:", graph_services_states);
     var pie_graph_services_parameters = {
         "ok": {
             color:"#5bb75b",
