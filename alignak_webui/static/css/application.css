@@ -112,6 +112,14 @@ body {
    margin-right: 4px;
 }
 
+
+/*
+ * Navigation bar, icons
+ */
+.header div.navbar-collapse ul li a {
+   text-align: center;
+}
+
 /*
  * Navigation bar, user menu
  */

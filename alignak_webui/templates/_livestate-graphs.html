@@ -1,0 +1,160 @@
+{# alignak_webui/templates/_livestate-graphs.html_ #}
+
+<div class="row" id="livestate-graphs">
+    <h2 class="page-header">System status</h2>
+    <div class="row" style="min-height: 150px">
+        <div id="chart-hosts" class="col-xs-12 col-sm-6 col-md-2">
+            <div class="well center-block">
+                <canvas></canvas>
+                <center>
+                    <h4>Current hosts states</h4>
+                    <span class="text-muted">-/-</span>
+                </center>
+            </div>
+        </div>
+        <div id="chart-services" class="col-xs-12 col-sm-6 col-md-2">
+            <div class="well center-block">
+                <canvas></canvas>
+                <center>
+                    <h4>Current services states</h4>
+                    <span class="text-muted">-/-</span>
+                </center>
+            </div>
+        </div>
+        <div id="chart-hosts-serie" class="col-xs-12 col-sm-6 col-md-4">
+            <div class="well center-block">
+                <canvas></canvas>
+                <center>
+                    <h4>Hosts states monitoring</h4>
+                    <span class="text-muted">-/-</span>
+                </center>
+            </div>
+        </div>
+        <div id="chart-services-serie" class="col-xs-12 col-sm-6 col-md-4">
+            <div class="well center-block">
+                <canvas></canvas>
+                <center>
+                    <h4>Services states monitoring</h4>
+                    <span class="text-muted">-/-</span>
+                </center>
+            </div>
+        </div>
+    </div>
+    <script>
+    $(document).ready(function(){
+        Chart.defaults.global.responsive = true;
+
+        if ($("#chart-hosts").length !== 0) {
+            // Hosts pie chart
+            var data = [
+                {
+                    value: 100,
+                    color:"#5AD3D1",
+                    highlight: "#5AD3D1",
+                    label: "Unknown"
+                }
+            ]
+            // Get the context of the canvas element we want to select
+            var ctx = $("#chart-hosts canvas").get(0).getContext("2d");
+            var myPieChart = new Chart(ctx).Pie(data);
+        }
+        if ($("#chart-services").length !== 0) {
+            // Pie chart
+            var data = [
+                {
+                   value: 100,
+                   color: "#5AD3D1",
+                   highlight: "#5AD3D1",
+                   label: "Unknown"
+                }
+            ]
+            // Get the context of the canvas element we want to select
+            var ctx = $("#chart-services canvas").get(0).getContext("2d");
+            var myPieChart = new Chart(ctx).Pie(data);
+        }
+        if ($("#chart-hosts-serie").length !== 0) {
+            // Line chart
+            var data = {
+                labels: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+                datasets: [
+                  {
+                      label: "Hosts up",
+                      fillColor: "rgba(91,183,91, 0.2))",
+                      strokeColor: "rgba(220,220,220,1)",
+                      pointColor: "rgba(220,220,220,1)",
+                      pointStrokeColor: "#fff",
+                      pointHighlightFill: "#fff",
+                      pointHighlightStroke: "rgba(220,220,220,1)",
+                      data: [0]
+                  },
+                  {
+                      label: "Hosts unreachable",
+                      fillColor: "rgba(250,167,50, 0.2)",
+                      strokeColor: "rgba(151,187,205,1)",
+                      pointColor: "rgba(151,187,205,1)",
+                      pointStrokeColor: "#fff",
+                      pointHighlightFill: "#fff",
+                      pointHighlightStroke: "rgba(151,187,205,1)",
+                      data: [0]
+                  },
+                  {
+                      label: "Hosts down",
+                      fillColor: "rgba(218,79,73,0.2)",
+                      strokeColor: "rgba(151,187,205,1)",
+                      pointColor: "rgba(151,187,205,1)",
+                      pointStrokeColor: "#fff",
+                      pointHighlightFill: "#fff",
+                      pointHighlightStroke: "rgba(151,187,205,1)",
+                      data: [0]
+                  }
+              ]
+            };
+            // Get the context of the canvas element we want to select
+            var ctx = $("#chart-hosts-serie canvas").get(0).getContext("2d");
+            var myLineChart = new Chart(ctx).Line(data);
+        }
+        if ($("#chart-services-serie").length !== 0) {
+            // Line chart
+            var data = {
+                labels: ["-9", "-8", "-7", "-6", "-5", "-4", "-3", "-2", "-1", "0"],
+                datasets: [
+                   {
+                      label: "Services ok",
+                      fillColor: "rgba(220,220,220,0.2)",
+                      strokeColor: "rgba(220,220,220,1)",
+                      pointColor: "rgba(220,220,220,1)",
+                      pointStrokeColor: "#fff",
+                      pointHighlightFill: "#fff",
+                      pointHighlightStroke: "rgba(220,220,220,1)",
+                      data: [0]
+                   },
+                   {
+                      label: "Services warning",
+                      fillColor: "rgba(151,187,205,0.2)",
+                      strokeColor: "rgba(151,187,205,1)",
+                      pointColor: "rgba(151,187,205,1)",
+                      pointStrokeColor: "#fff",
+                      pointHighlightFill: "#fff",
+                      pointHighlightStroke: "rgba(151,187,205,1)",
+                      data: [0]
+                   },
+                   {
+                      label: "Services critical",
+                      fillColor: "rgba(220,220,220,0.2)",
+                      strokeColor: "rgba(220,220,220,1)",
+                      pointColor: "rgba(220,220,220,1)",
+                      pointStrokeColor: "#fff",
+                      pointHighlightFill: "#fff",
+                      pointHighlightStroke: "rgba(220,220,220,1)",
+                      data: [0]
+                   }
+                ]
+            };
+
+            // Get the context of the canvas element we want to select
+            var ctx = $("#chart-services-serie canvas").get(0).getContext("2d");
+            var myLineChart = new Chart(ctx).Line(data);
+        }
+    });
+    </script>
+</div>

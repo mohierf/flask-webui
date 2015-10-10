@@ -690,7 +690,7 @@ class Helper(object):
                 bi, bi, len(rows), self.get_html_business_impact(bi, icon=True, text=True)
             )
 
-        return { 'rows': rows, 'panel_bi': panel_bi }
+        return { 'bi': bi, 'rows': rows, 'panel_bi': panel_bi }
 
     def get_livesynthesis(self):
         """Get live synthesis from backend"""

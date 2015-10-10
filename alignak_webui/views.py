@@ -63,19 +63,23 @@ def set_search_string():
     """
     Set search string ...
 
-    If GET request, display login form
-    If POST request, authenticates user and redirects to index page
+    If GET request, returns UI data:
+    - search_string
+
+    If POST request, update UI data
+    - search_string
     """
-    # Get configured backend ...
-    # frontend = app.config['frontend']
-
-    helper.search_string = ""
-
+    app.logger.info("Helper search string: %s", helper)
     if request.method == 'POST':
         helper.search_string = request.form['search_string']
-        app.logger.info("Helper search string: %s", helper.search_string)
+        app.logger.info("New helper search string: %s", helper.search_string)
+        return str(helper.search_string)
 
-    return helper.search_string
+    if request.method == 'GET':
+        data = {"search_string": helper.search_string}
+        res = jsonify(**data)
+        res.status_code = 200
+        return res
 
 
 @app.route('/')
@@ -117,7 +121,21 @@ def refresh_livestate():
 
     Update system live state and build header elements
     """
-    data = {'livestate': helper.get_html_livestate(request.args.get('bi', 0),)}
+    data = {'livestate': helper.get_html_livestate(int(request.args.get('bi', 0)))}
+
+    res = jsonify(**data)
+    res.status_code = 200
+    return res
+
+
+@app.route('/livesynthesis')
+@login_required
+def get_livesynthesis():
+    """
+    Get application livestate synthesis
+
+    """
+    data = {'livesynthesis': helper.get_livesynthesis()}
 
     res = jsonify(**data)
     res.status_code = 200

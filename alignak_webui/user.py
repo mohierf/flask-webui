@@ -124,14 +124,17 @@ class User(UserMixin):
         """
         try:
             logger.debug("Request matching contacts from backend ...")
-            contacts = self.backend.get_objects(
-                'contact', parameters=search_pattern, all_elements=True
-            )
-            logger.debug("Got %d matching contacts", len(contacts))
+            if self.backend.logged_in:
+                contacts = [self.backend.logged_in]
+            else:
+                contacts = self.backend.get_objects(
+                    'contact', parameters=search_pattern, all_elements=True
+                )
+                logger.debug("Got %d contacts", len(contacts))
+
             if contacts:
                 self.contact = {}
                 for key in contacts[0]:
-                    logger.debug("Add attribute '%s' = %s", key, contacts[0][key])
                     self.contact[key] = contacts[0][key]
 
                 self.username = self.contact['contact_name'] or None
@@ -200,7 +203,7 @@ class User(UserMixin):
             if self.token:
                 self.get_from_backend({"where": '{"token": "%s"}' % self.token})
 
-                logger.debug("User is authenticated, username: %s", username)
+                logger.debug("User is authenticated, username: %s", self.username)
 
                 if self.backend.connect(token=self.token):
                     self.is_validated = True

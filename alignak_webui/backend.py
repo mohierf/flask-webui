@@ -61,6 +61,7 @@ class FrontEnd(object):
         self.connected = False
         self.initialized = False
         self.authenticated = False
+        self.logged_in = None
         self.token = None
 
         # Backend objects which will be loaded on backend connection ...
@@ -208,8 +209,8 @@ class FrontEnd(object):
                         if (token and contact["token"] == token) or (
                                 username and contact["contact_name"] == username):
                             matching_contact = True
+                            self.logged_in = contact
                             self.token = contact["token"]
-                            # contact["_token"] = self.token
                             log.info(
                                 "found a contact matching logged in user contact: %s (%s)",
                                 contact["contact_name"], contact["token"]
@@ -239,6 +240,7 @@ class FrontEnd(object):
         self.connected = False
         self.authenticated = False
         self.token = None
+        self.logged_in = None
 
         self.backend.logout()
 
@@ -305,6 +307,11 @@ class FrontEnd(object):
 
             log.info("get_objects, type: %s, parameters: %s / %d (%s)",
                      object_type, parameters, all_elements, self.token)
+
+             # If requested objects are stored locally ...
+            if object_type in self.objects_cache:
+                log.debug("get_objects, returns local store objects")
+                return self.objects_cache[object_type]
 
             # Request objects from the backend ...
             if all_elements:

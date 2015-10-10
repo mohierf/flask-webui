@@ -853,6 +853,7 @@ class test_helper(unittest.TestCase):
 
         print "Get HTML live state ..."
         html = self.helper.get_html_livestate()
+        assert 'bi' in html
         assert 'rows' in html
         assert 'panel_bi' in html
         print "Result:", html

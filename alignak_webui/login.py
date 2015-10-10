@@ -42,7 +42,7 @@ def token_loader(token):  # pragma: no cover - very difficult with unit testing 
     Called when user login check is required
     """
     # pragma: no cover - very difficult with unit testing ...
-    app.logger.info("token_loader - Try to find user with token: %s", token)
+    app.logger.debug("token_loader - Try to find user with token: %s", token)
     return User.get_from_token(token)
 
 
@@ -51,7 +51,9 @@ def user_loader(user_id):
     """
     Called when user login check is required
     """
-    app.logger.info("user_loader - Try to find user with token: %s", user_id)
+    # if current_user.is_authenticated:
+        # return current_user
+    app.logger.debug("user_loader - Try to find user with token: %s", user_id)
     return User.get_from_username(user_id)
 
 
