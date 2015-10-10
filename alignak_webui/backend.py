@@ -41,7 +41,7 @@ from requests.auth import HTTPBasicAuth
 # import alignak_backend_client.client
 from alignak_backend_client.client import Backend, BackendException
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class FrontEnd(object):
@@ -90,7 +90,7 @@ class FrontEnd(object):
         else:
             self.url_endpoint_root = endpoint
 
-        log.info("backend endpoint: %s", self.url_endpoint_root)
+        logger.info("backend endpoint: %s", self.url_endpoint_root)
         self.backend = Backend(self.url_endpoint_root)
 
     def login(self, username=None, password=None, token=None, force=False):
@@ -112,29 +112,29 @@ class FrontEnd(object):
                 try:
                     # Test the backend connection
                     self.backend.token = token
-                    log.info("request backend user authentication, token: %s", token)
+                    logger.info("request backend user authentication, token: %s", token)
                     self.backend_available_objets = self.backend.get_domains()
                     if self.backend_available_objets:
                         self.authenticated = True
                         self.token = token
-                        log.info("backend user authenticated")
+                        logger.info("backend user authenticated")
                 except BackendException as e:
-                    log.error("frontend connection, error: %s", str(e))
+                    logger.error("frontend connection, error: %s", str(e))
                     self.authenticated = False
                     self.token = None
             else:
                 self.authenticated = False
                 self.token = None
-                log.info("request backend user authentication, username: %s", username)
+                logger.info("request backend user authentication, username: %s", username)
                 self.authenticated = self.backend.login(username=username, password=password)
                 if self.authenticated:
                     self.token = self.backend.token
 
-                    log.info("backend user authenticated: %s", username)
+                    logger.info("backend user authenticated: %s", username)
         except BackendException as e:
-            log.error("backend login, error: %s", str(e))
-            log.debug("exception type: %s", type(e))
-            log.debug("Back trace of this kill: %s", traceback.format_exc())
+            logger.error("backend login, error: %s", str(e))
+            logger.debug("exception type: %s", type(e))
+            logger.debug("Back trace of this kill: %s", traceback.format_exc())
             self.connected = False
             self.authenticated = self.connected
             raise e
@@ -203,7 +203,7 @@ class FrontEnd(object):
                 # If we got contacts, try to find a contact matching our authenticated user ...
                 if 'contact' in self.objects_cache:
                     for contact in self.objects_cache['contact']:
-                        log.debug(
+                        logger.debug(
                             "available contact: %s / %s", contact["contact_name"], contact["token"]
                         )
                         if (token and contact["token"] == token) or (
@@ -211,7 +211,7 @@ class FrontEnd(object):
                             matching_contact = True
                             self.logged_in = contact
                             self.token = contact["token"]
-                            log.info(
+                            logger.info(
                                 "found a contact matching logged in user contact: %s (%s)",
                                 contact["contact_name"], contact["token"]
                             )
@@ -219,14 +219,14 @@ class FrontEnd(object):
                     self.authenticated = self.connected
 
         except BackendException as e:
-            log.error("frontend connection, error: %s", str(e))
+            logger.error("frontend connection, error: %s", str(e))
             self.connected = False
             self.authenticated = self.connected
             raise e
         except Exception as e:  # pragma: no cover - simple protection if ever happened ...
-            log.error("frontend connection, error: %s", str(e))
-            log.debug("exception type: %s", type(e))
-            log.debug("Back trace of this kill: %s", traceback.format_exc())
+            logger.error("frontend connection, error: %s", str(e))
+            logger.debug("exception type: %s", type(e))
+            logger.debug("Back trace of this kill: %s", traceback.format_exc())
 
         return self.connected
 
@@ -269,7 +269,7 @@ class FrontEnd(object):
             for object_type in self.backend_available_objets:
                 t = object_type["href"]
                 if t in self.interested_in:
-                    log.info(
+                    logger.info(
                         "getting '%s' cached objects on %s%s",
                         object_type["title"], self.url_endpoint_root, t
                     )
@@ -281,7 +281,7 @@ class FrontEnd(object):
 
             self.initialized = True
         except Exception as e:  # pragma: no cover
-            log.error("FrontEnd, initialize, exception: %s", str(e))
+            logger.error("FrontEnd, initialize, exception: %s", str(e))
 
         return self.initialized
 
@@ -305,12 +305,12 @@ class FrontEnd(object):
         try:
             items = []
 
-            log.info("get_objects, type: %s, parameters: %s / %d (%s)",
+            logger.info("get_objects, type: %s, parameters: %s / %d (%s)",
                      object_type, parameters, all_elements, self.token)
 
              # If requested objects are stored locally ...
             if object_type in self.objects_cache:
-                log.debug("get_objects, returns local store objects")
+                logger.debug("get_objects, returns local store objects")
                 return {'_items': self.objects_cache[object_type]}
 
             # Request objects from the backend ...
@@ -318,19 +318,19 @@ class FrontEnd(object):
                 items = self.backend.get_all(object_type, parameters)
             else:
                 items = self.backend.get(object_type, parameters)
-            # log.debug("get_objects, type: %s, items: %s", object_type, items)
+            # logger.debug("get_objects, type: %s, items: %s", object_type, items)
 
             # Should be handled in the try / except ... but exception is not always raised!
             if '_error' in items:  # pragma: no cover - need specific backend tests
                 error = items['_error']
-                log.error(
+                logger.error(
                     "backend get: %s, %s",
                     error['code'], error['message']
                 )
                 items = []
 
         except Exception as e:  # pragma: no cover - need specific backend tests
-            log.error("get_objects, exception: %s", str(e))
+            logger.error("get_objects, exception: %s", str(e))
 
         return items
 
@@ -352,7 +352,7 @@ class FrontEnd(object):
         try:
             response = None
 
-            log.debug("set_user_preferences, type: %s, for: %s, parameters: %s",
+            logger.debug("set_user_preferences, type: %s, for: %s, parameters: %s",
                       prefs_type, user, parameters)
 
             # Still existing ...
@@ -362,7 +362,7 @@ class FrontEnd(object):
             )
             if items:
                 items = items[0]
-                log.info(
+                logger.info(
                     "set_user_preferences, update exising record: %s / %s (%s)",
                     prefs_type, user, items['_id']
                 )
@@ -379,7 +379,7 @@ class FrontEnd(object):
                 )
             else:
                 # Create new record ...
-                log.info(
+                logger.info(
                     "set_user_preferences, create new record: %s / %s",
                     prefs_type, user
                 )
@@ -389,10 +389,10 @@ class FrontEnd(object):
                     "data": parameters
                 }
                 response = self.backend.post('uipref', data=data)
-            log.debug("set_user_preferences, response: %s", response)
+            logger.debug("set_user_preferences, response: %s", response)
 
         except Exception as e:  # pragma: no cover - need specific backend tests
-            log.error("set_user_preferences, exception: %s", str(e))
+            logger.error("set_user_preferences, exception: %s", str(e))
             raise e
 
         return response
@@ -411,7 +411,7 @@ class FrontEnd(object):
         :rtype: dict
         """
         try:
-            log.debug("get_user_preferences, type: %s, for: %s", prefs_type, user)
+            logger.debug("get_user_preferences, type: %s, for: %s", prefs_type, user)
 
             # Still existing ...
             items = self.backend.get_all(
@@ -419,11 +419,11 @@ class FrontEnd(object):
                 params={'where': '{"type":"%s", "user": "%s"}' % (prefs_type, user)}
             )
             if items:
-                log.debug("get_user_preferences, found: %s", items[0])
+                logger.debug("get_user_preferences, found: %s", items[0])
                 return items[0]
 
         except Exception as e:  # pragma: no cover - need specific backend tests
-            log.error("get_user_preferences, exception: %s", str(e))
+            logger.error("get_user_preferences, exception: %s", str(e))
             raise e
 
         return None  # pragma: no cover - need specific backend tests
@@ -439,13 +439,13 @@ class FrontEnd(object):
             :return: list of fields name/title
             :rtype: list
         """
-        log.debug("get_ui_data_model, element type: %s", element_type)
-        log.debug("get_ui_data_model, domains: %s", self.dm_domains)
+        logger.debug("get_ui_data_model, element type: %s", element_type)
+        logger.debug("get_ui_data_model, domains: %s", self.dm_domains)
 
         fields = []
         if element_type in self.dm_domains:
             for model in self.dm_domains[element_type]:
-                log.debug("get_ui_data_model, model: %s", model["name"])
+                logger.debug("get_ui_data_model, model: %s", model["name"])
                 # element is considered for the UI
                 if 'ui' in model["name"]:
                     fields = self.dm_domains[element_type]
@@ -498,21 +498,130 @@ class FrontEnd(object):
         parameters.update({'where': '{"service_description": {"$ne": null}}'})
         return self.get_objects('livestate', parameters, all_elements=all_elements)
 
-    def get_livesynthesis(self):
+    def get_livesynthesis(self, parameters=None, all_elements=True):
         """ Get livestate synthesis for hosts and services
 
-            :return: hosts and services live state synthesis
+            Example backend response :
+            {
+                "hosts_total": 12,
+                "hosts_business_impact": 0,
+                "hosts_acknowledged": 0,
+                "hosts_in_downtime": 0,
+                "hosts_flapping": 0,
+                "hosts_up_hard": 0,
+                "hosts_up_soft": 0,
+                "hosts_unreachable_hard": 0,
+                "hosts_unreachable_soft": 0,
+                "hosts_down_hard": 0,
+                "hosts_down_soft": 0,
+
+                "services_total": 245,
+                "services_business_impact": 0,
+                "services_acknowledged": 0,
+                "services_in_downtime": 0,
+                "services_flapping": 0,
+                "services_ok_hard": 0,
+                "services_ok_soft": 0,
+                "services_warning_hard": 0,
+                "services_warning_soft": 0,
+                "services_critical_hard": 0,
+                "services_critical_soft": 0,
+                "services_unknown_soft": 0,
+                "services_unknown_hard": 0,
+                "_created": "Thu, 01 Jan 1970 00:00:00 GMT",
+                "_updated": "Sat, 10 Oct 2015 09:08:59 GMT",
+                "_id": "5618d5abf9e3852e3444a5ee",
+                "_etag": "edce4629fff2412ab7257216bb66c54795baada4"
+                "_links": {
+                    "self": {
+                        "href": "livesynthesis/5618d5abf9e3852e3444a5ee",
+                        "title": "Livesynthesi"
+                    }
+                },
+            }
+
+            Returns an hosts_synthesis dictionary containing:
+            - number of elements
+            - business impact
+            - count for each state (hard and soft)
+            - percentage for each state (hard and soft)
+            - number of problems (down and unreachable, only hard state)
+            - percentage of problems
+
+            Returns a services_synthesis dictionary containing:
+            - number of elements
+            - business impact
+            - count for each state (hard and soft)
+            - percentage for each state (hard and soft)
+            - number of problems (down and unreachable, only hard state)
+            - percentage of problems
+
+            :return: hosts and services live state synthesis in a dictionary
             :rtype: dict
         """
+        ls = self.get_objects('livesynthesis', parameters, all_elements=all_elements)
+        ls = ls[0]
+
+        # Services synthesis
+        hosts_synthesis = {
+            'nb_elts': ls["hosts_total"],
+            'business_impact': ls["hosts_business_impact"],
+        }
+        for state in 'up', 'down', 'unreachable':
+            hosts_synthesis.update({
+                "nb_" + state: ls["hosts_%s_hard" % state] + ls["hosts_%s_soft" % state]
+            })
+        for state in 'acknowledged', 'in_downtime', 'flapping':
+            hosts_synthesis.update({
+                "nb_" + state: ls["hosts_%s" % state]
+            })
+        hosts_synthesis.update({
+            "nb_problems": ls["hosts_down_hard"] + ls["hosts_unreachable_hard"]
+        })
+        for state in 'up', 'down', 'unreachable':
+            hosts_synthesis.update({
+                "pct_" + state: round(100.0 * hosts_synthesis['nb_' + state] / hosts_synthesis['nb_elts'], 2)
+            })
+        for state in 'acknowledged', 'in_downtime', 'flapping', 'problems':
+            hosts_synthesis.update({
+                "pct_" + state: round(100.0 * hosts_synthesis['nb_' + state] / hosts_synthesis['nb_elts'], 2)
+            })
+
+        # Services synthesis
+        services_synthesis = {
+            'nb_elts': ls["services_total"],
+            'business_impact': ls["services_business_impact"],
+        }
+        for state in 'ok', 'warning', 'critical', 'unknown':
+            services_synthesis.update({
+                "nb_" + state: ls["services_%s_hard" % state] + ls["services_%s_soft" % state]
+            })
+        for state in 'acknowledged', 'in_downtime', 'flapping':
+            services_synthesis.update({
+                "nb_" + state: ls["services_%s" % state]
+            })
+        services_synthesis.update({
+            "nb_problems": ls["services_warning_hard"] + ls["services_critical_hard"]
+        })
+        for state in 'ok', 'warning', 'critical', 'unknown':
+            services_synthesis.update({
+                "pct_" + state: round(100.0 * services_synthesis['nb_' + state] / services_synthesis['nb_elts'], 2)
+            })
+        for state in 'acknowledged', 'in_downtime', 'flapping', 'problems':
+            services_synthesis.update({
+                "pct_" + state: round(100.0 * services_synthesis['nb_' + state] / services_synthesis['nb_elts'], 2)
+            })
+
         synthesis = {
-            'hosts_synthesis': self.get_hosts_synthesis(),
-            'services_synthesis': self.get_services_synthesis()
+            'hosts_synthesis': hosts_synthesis,
+            'services_synthesis': services_synthesis
         }
         return synthesis
 
     def get_hosts_synthesis(self):
         """
-        @ddurieux: this computation should be made by the backend each time an update occurs!
+        Deprecated function !
+
         Add an API endpoint /hosts_synthesis
         --------------------------------------------------------------------------------------------
         Returns an hosts live state synthesis containing:
@@ -555,12 +664,13 @@ class FrontEnd(object):
         if hosts:
             h['pct_problems'] = round(100.0 * h['nb_problems'] / h['nb_elts'], 2)
 
-        log.info("get_hosts_synthesis: %s, %s", type(h), h)
+        logger.info("get_hosts_synthesis: %s, %s", type(h), h)
         return h
 
     def get_services_synthesis(self):
         """
-        @ddurieux: this computation should be made by the backend each time an update occurs!
+        Deprecated function !
+
         Add an API endpoint /services_synthesis
         --------------------------------------------------------------------------------------------
         Returns a services live state synthesis containing:
@@ -603,5 +713,5 @@ class FrontEnd(object):
         if services:
             s['pct_problems'] = round(100.0 * s['nb_problems'] / s['nb_elts'], 2)
 
-        log.info("get_services_synthesis: %s", s)
+        logger.info("get_services_synthesis: %s", s)
         return s

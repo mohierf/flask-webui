@@ -428,7 +428,7 @@ class test_frontend(unittest.TestCase):
         # Backend connection
         frontend.disconnect()
 
-    def test_9_livesynthesis(self):
+    def test_0_livesynthesis(self):
         print ''
         print 'get live synthesis'
 
@@ -446,18 +446,41 @@ class test_frontend(unittest.TestCase):
         print synthesis
         assert_true('hosts_synthesis' in synthesis)
         assert_true('nb_elts' in synthesis['hosts_synthesis'])
+        assert_true('business_impact' in synthesis['hosts_synthesis'])
+        assert_true('nb_up' in synthesis['hosts_synthesis'])
+        assert_true('nb_down' in synthesis['hosts_synthesis'])
+        assert_true('nb_unreachable' in synthesis['hosts_synthesis'])
+        assert_true('nb_acknowledged' in synthesis['hosts_synthesis'])
+        assert_true('nb_in_downtime' in synthesis['hosts_synthesis'])
+        assert_true('nb_flapping' in synthesis['hosts_synthesis'])
+        assert_true('nb_problems' in synthesis['hosts_synthesis'])
+        assert_true('pct_up' in synthesis['hosts_synthesis'])
+        assert_true('pct_down' in synthesis['hosts_synthesis'])
+        assert_true('pct_unreachable' in synthesis['hosts_synthesis'])
+        assert_true('pct_acknowledged' in synthesis['hosts_synthesis'])
+        assert_true('pct_in_downtime' in synthesis['hosts_synthesis'])
+        assert_true('pct_flapping' in synthesis['hosts_synthesis'])
+        assert_true('pct_problems' in synthesis['hosts_synthesis'])
+
         assert_true('services_synthesis' in synthesis)
         assert_true('nb_elts' in synthesis['services_synthesis'])
-
-        print 'get hosts live synthesis'
-        synthesis = frontend.get_hosts_synthesis()
-        print synthesis
-        assert_true('nb_elts' in synthesis)
-
-        print 'get services live synthesis'
-        synthesis = frontend.get_services_synthesis()
-        print synthesis
-        assert_true('nb_elts' in synthesis)
+        assert_true('business_impact' in synthesis['services_synthesis'])
+        assert_true('nb_ok' in synthesis['services_synthesis'])
+        assert_true('nb_warning' in synthesis['services_synthesis'])
+        assert_true('nb_critical' in synthesis['services_synthesis'])
+        assert_true('nb_unknown' in synthesis['services_synthesis'])
+        assert_true('nb_acknowledged' in synthesis['services_synthesis'])
+        assert_true('nb_in_downtime' in synthesis['services_synthesis'])
+        assert_true('nb_flapping' in synthesis['services_synthesis'])
+        assert_true('nb_problems' in synthesis['services_synthesis'])
+        assert_true('pct_ok' in synthesis['services_synthesis'])
+        assert_true('pct_warning' in synthesis['services_synthesis'])
+        assert_true('pct_critical' in synthesis['services_synthesis'])
+        assert_true('pct_unknown' in synthesis['services_synthesis'])
+        assert_true('pct_acknowledged' in synthesis['services_synthesis'])
+        assert_true('pct_in_downtime' in synthesis['services_synthesis'])
+        assert_true('pct_flapping' in synthesis['services_synthesis'])
+        assert_true('pct_problems' in synthesis['services_synthesis'])
 
         # Backend disconnection
         frontend.disconnect()
