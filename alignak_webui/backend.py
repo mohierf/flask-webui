@@ -311,7 +311,7 @@ class FrontEnd(object):
              # If requested objects are stored locally ...
             if object_type in self.objects_cache:
                 log.debug("get_objects, returns local store objects")
-                return self.objects_cache[object_type]
+                return {'_items': self.objects_cache[object_type]}
 
             # Request objects from the backend ...
             if all_elements:

@@ -337,7 +337,7 @@ class Datatable(object):
         resp = frontend.get_objects(self.object_type)
 
         # Update title with number of elements
-        if '%d' in ui_dm["title"]:
+        if '_items' in resp and '%d' in ui_dm["title"]:
             ui_dm["title"] = ui_dm["title"] % len(resp['_items'])
 
         return render_template(
@@ -345,7 +345,7 @@ class Datatable(object):
             object_type=self.object_type,
             title=ui_dm["title"],
             columns=table_columns,
-            list=resp['_items']
+            list=resp['_items'] if '_items' in resp else resp
         )
 
     def page(self, name='unknown'):
