@@ -78,9 +78,14 @@
         "nb_ok": [], "nb_warning": [], "nb_critical": [], "nb_unknown": []
     };
 
-
     var pie_hosts_graph_states = "{{ settings.get('layout.livestate-pie_hosts_graph_states_states', 'up,down,unreachable') }}";
     pie_hosts_graph_states = pie_hosts_graph_states.split(',');
+    $.each(['up','unreachable','down'], function( index, value ) {
+        for (var i=0; i<hosts_states_queue_length; i++) {
+            states_queue["nb_"+value].push(0);
+        }
+    });
+
     var pie_hosts_graph_parameters = {
         "up": {
             color:"#5bb75b",
@@ -118,6 +123,7 @@
 
     var line_hosts_graph_states = "{{ settings.get('layout.livestate-pie_hosts_graph_states_states', 'down,unreachable') }}";
     line_hosts_graph_states = line_hosts_graph_states.split(',');
+
     var line_hosts_graph_data = {
         labels: [],
         datasets: {
@@ -176,6 +182,12 @@
 
     var pie_services_graph_states = "{{ settings.get('layout.livestate-pie_services_graph_states_states', 'ok,warning,critical,unknown') }}";
     pie_services_graph_states = pie_services_graph_states.split(',');
+    $.each(['ok','warning','critical','unknown'], function( index, value ) {
+        for (var i=0; i<services_states_queue_length; i++) {
+            states_queue["nb_"+value].push(0);
+        }
+    });
+
     var pie_services_graph_parameters = {
         "ok": {
             color:"#5bb75b",
@@ -218,6 +230,7 @@
 
     var line_services_graph_states = "{{ settings.get('layout.livestate-pie_services_graph_states_states', 'warning,critical,unknown') }}";
     line_services_graph_states = line_services_graph_states.split(',');
+
     var line_services_graph_data = {
         labels: [],
         datasets: {
