@@ -173,21 +173,22 @@ class basic_tests(unittest.TestCase):
         print ''
         print 'test search string'
 
-        rv = self.app.get('/app_settings')
-        print rv.data
-        assert 'search_string' in rv.data
-        # assert not rv.data['search_string']
-        assert 'search_name' in rv.data
-        # assert not rv.data['search_name']
+        with self.app:
+            rv = self.app.get('/app_settings')
+            print rv.data
+            assert 'search_string' in rv.data
+            # assert not rv.data['search_string']
+            assert 'search_name' in rv.data
+            # assert not rv.data['search_name']
 
-        self.app.post('/app_settings', data=dict(
-            search_string='search_string',
-            search_name='search_name'
-        ))
+            self.app.post('/app_settings', data=dict(
+                search_string='search_string',
+                search_name='search_name'
+            ))
 
-        rv = self.app.get('/app_settings')
-        assert 'search_string' in rv.data
-        assert rv.data['search_string'] == 'search_string'
+            rv = self.app.get('/app_settings')
+            print rv.data
+            assert '"search_string": "search_string"' in rv.data
 
 
 if __name__ == '__main__':

@@ -331,31 +331,25 @@ class test_helper(unittest.TestCase):
         # Host, icon only (default) ...
         s = self.helper.get_html_state('host', 'UP')
         print "Result:", s
-        self.assert_(s == '<span class="font-up"><span class="fa-stack" title="host state is UP"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<center class="font-up"><span class="fa-stack" title="host state is UP"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><div></div></center>')
         s = self.helper.get_html_state('host', 'DOWN')
         print "Result:", s
-        self.assert_(s == '<span class="font-down"><span class="fa-stack" title="host state is DOWN"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<center class="font-down"><span class="fa-stack" title="host state is DOWN"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><div></div></center>')
         s = self.helper.get_html_state('host', 'UNREACHABLE')
         print "Result:", s
-        self.assert_(s == '<span class="font-unreachable"><span class="fa-stack" title="host state is UNREACHABLE"><i class="fa fa-circle fa-stack-2x font-unreachable"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
-        # s = self.helper.get_html_state('host', 'UNKNOWN')
-        # print "Result:", s
-        # self.assert_(s == '<span class="font-UNKNOWN"><span class="fa-stack" title="host state is UNKNOWN"><i class="fa fa-circle fa-stack-2x font-unknown"></i><i class="fa fa-question fa-stack-1x fa-inverse"></i></span><span></span></span>')
-        # s = self.helper.get_html_state('host', 'PENDING')
-        # print "Result:", s
-        # self.assert_(s == '<span class="font-PENDING"><span class="fa-stack" title="host state is PENDING"><i class="fa fa-circle fa-stack-2x font-pending"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<center class="font-unreachable"><span class="fa-stack" title="host state is UNREACHABLE"><i class="fa fa-circle fa-stack-2x font-unreachable"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><div></div></center>')
         s = self.helper.get_html_state('host', 'UP', extra='FLAPPING')
         print "Result:", s
-        self.assert_(s == '<span class="font-up"><span class="fa-stack" title="host state is UP and flapping"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x font-up"></i></span><span></span></span>')
+        self.assert_(s == '<center class="font-up"><span class="fa-stack" title="host state is UP and flapping"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x font-up"></i></span><div></div></center>')
         s = self.helper.get_html_state('host', 'DOWN', extra='FLAPPING')
         print "Result:", s
-        self.assert_(s == '<span class="font-down"><span class="fa-stack" title="host state is DOWN and flapping"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x font-down"></i></span><span></span></span>')
+        self.assert_(s == '<center class="font-down"><span class="fa-stack" title="host state is DOWN and flapping"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x font-down"></i></span><div></div></center>')
         s = self.helper.get_html_state('host', 'DOWN', extra='ACKNOWLEDGED')
         print "Result:", s
-        self.assert_(s == '<span class="font-down"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN and acknowledged"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<center class="font-down"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN and acknowledged"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><div></div></center>')
         s = self.helper.get_html_state('host', 'DOWN', extra='IN_DOWNTIME')
         print "Result:", s
-        self.assert_(s == '<span class="font-down"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN but downtime is scheduled"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<center class="font-down"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN but downtime is scheduled"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><div></div></center>')
         # Host, text only ...
         s = self.helper.get_html_state('host', 'UP', text=True, icon=False)
         print "Result:", s
@@ -382,25 +376,25 @@ class test_helper(unittest.TestCase):
         # Host, icon and text ...
         s = self.helper.get_html_state('host', 'UP', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-up"><span class="fa-stack" title="host state is UP"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is UP</span></span>')
+        self.assert_(s == '<center class="font-up"><span class="fa-stack" title="host state is UP"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><div>host state is UP</div></center>')
         s = self.helper.get_html_state('host', 'DOWN', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-down"><span class="fa-stack" title="host state is DOWN"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is DOWN</span></span>')
+        self.assert_(s == '<center class="font-down"><span class="fa-stack" title="host state is DOWN"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><div>host state is DOWN</div></center>')
         s = self.helper.get_html_state('host', 'UNREACHABLE', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-unreachable"><span class="fa-stack" title="host state is UNREACHABLE"><i class="fa fa-circle fa-stack-2x font-unreachable"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is UNREACHABLE</span></span>')
+        self.assert_(s == '<center class="font-unreachable"><span class="fa-stack" title="host state is UNREACHABLE"><i class="fa fa-circle fa-stack-2x font-unreachable"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><div>host state is UNREACHABLE</div></center>')
         s = self.helper.get_html_state('host', 'UP', extra='FLAPPING', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-up"><span class="fa-stack" title="host state is UP and flapping"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x font-up"></i></span><span>host state is UP and flapping</span></span>')
+        self.assert_(s == '<center class="font-up"><span class="fa-stack" title="host state is UP and flapping"><i class="fa fa-circle fa-stack-2x font-up"></i><i class="fa fa-server fa-stack-1x font-up"></i></span><div>host state is UP and flapping</div></center>')
         s = self.helper.get_html_state('host', 'DOWN', extra='FLAPPING', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-down"><span class="fa-stack" title="host state is DOWN and flapping"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x font-down"></i></span><span>host state is DOWN and flapping</span></span>')
+        self.assert_(s == '<center class="font-down"><span class="fa-stack" title="host state is DOWN and flapping"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x font-down"></i></span><div>host state is DOWN and flapping</div></center>')
         s = self.helper.get_html_state('host', 'DOWN', extra='ACKNOWLEDGED', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-down"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN and acknowledged"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is DOWN and acknowledged</span></span>')
+        self.assert_(s == '<center class="font-down"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN and acknowledged"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><div>host state is DOWN and acknowledged</div></center>')
         s = self.helper.get_html_state('host', 'DOWN', extra='IN_DOWNTIME', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-down"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN but downtime is scheduled"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><span>host state is DOWN but downtime is scheduled</span></span>')
+        self.assert_(s == '<center class="font-down"><span class="fa-stack" style="opacity: 0.5" title="host state is DOWN but downtime is scheduled"><i class="fa fa-circle fa-stack-2x font-down"></i><i class="fa fa-server fa-stack-1x fa-inverse"></i></span><div>host state is DOWN but downtime is scheduled</div></center>')
 
     def test_06_get_service_state_text(self):
         print "---"
@@ -408,28 +402,28 @@ class test_helper(unittest.TestCase):
         # service, icon only (default) ...
         s = self.helper.get_html_state('service', 'OK')
         print "Result:", s
-        self.assert_(s == '<span class="font-ok"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<center class="font-ok"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><div></div></center>')
         s = self.helper.get_html_state('service', 'CRITICAL')
         print "Result:", s
-        self.assert_(s == '<span class="font-critical"><span class="fa-stack" title="service state is CRITICAL"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<center class="font-critical"><span class="fa-stack" title="service state is CRITICAL"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><div></div></center>')
         s = self.helper.get_html_state('service', 'WARNING')
         print "Result:", s
-        self.assert_(s == '<span class="font-warning"><span class="fa-stack" title="service state is WARNING"><i class="fa fa-circle fa-stack-2x font-warning"></i><i class="fa fa-exclamation fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<center class="font-warning"><span class="fa-stack" title="service state is WARNING"><i class="fa fa-circle fa-stack-2x font-warning"></i><i class="fa fa-exclamation fa-stack-1x fa-inverse"></i></span><div></div></center>')
         s = self.helper.get_html_state('service', 'UNKNOWN')
         print "Result:", s
-        self.assert_(s == '<span class="font-unknown"><span class="fa-stack" title="service state is UNKNOWN"><i class="fa fa-circle fa-stack-2x font-unknown"></i><i class="fa fa-question fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<center class="font-unknown"><span class="fa-stack" title="service state is UNKNOWN"><i class="fa fa-circle fa-stack-2x font-unknown"></i><i class="fa fa-question fa-stack-1x fa-inverse"></i></span><div></div></center>')
         s = self.helper.get_html_state('service', 'ok', extra='FLAPPING')
         print "Result:", s
-        self.assert_(s == '<span class="font-ok"><span class="fa-stack" title="service state is OK and flapping"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x font-ok"></i></span><span></span></span>')
+        self.assert_(s == '<center class="font-ok"><span class="fa-stack" title="service state is OK and flapping"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x font-ok"></i></span><div></div></center>')
         s = self.helper.get_html_state('service', 'CRITICAL', extra='FLAPPING')
         print "Result:", s
-        self.assert_(s == '<span class="font-critical"><span class="fa-stack" title="service state is CRITICAL and flapping"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x font-critical"></i></span><span></span></span>')
+        self.assert_(s == '<center class="font-critical"><span class="fa-stack" title="service state is CRITICAL and flapping"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x font-critical"></i></span><div></div></center>')
         s = self.helper.get_html_state('service', 'CRITICAL', extra='ACKNOWLEDGED')
         print "Result:", s
-        self.assert_(s == '<span class="font-critical"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL and acknowledged"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<center class="font-critical"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL and acknowledged"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><div></div></center>')
         s = self.helper.get_html_state('service', 'CRITICAL', extra='IN_DOWNTIME')
         print "Result:", s
-        self.assert_(s == '<span class="font-critical"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL but downtime is scheduled"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span></span></span>')
+        self.assert_(s == '<center class="font-critical"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL but downtime is scheduled"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><div></div></center>')
 
         # service, text only ...
         s = self.helper.get_html_state('service', 'OK', text=True, icon=False)
@@ -460,38 +454,38 @@ class test_helper(unittest.TestCase):
         # service, icon and text ...
         s = self.helper.get_html_state('service', 'OK', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-ok"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><span>service state is OK</span></span>')
+        self.assert_(s == '<center class="font-ok"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><div>service state is OK</div></center>')
         s = self.helper.get_html_state('service', 'CRITICAL', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-critical"><span class="fa-stack" title="service state is CRITICAL"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span>service state is CRITICAL</span></span>')
+        self.assert_(s == '<center class="font-critical"><span class="fa-stack" title="service state is CRITICAL"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><div>service state is CRITICAL</div></center>')
         s = self.helper.get_html_state('service', 'WARNING', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-warning"><span class="fa-stack" title="service state is WARNING"><i class="fa fa-circle fa-stack-2x font-warning"></i><i class="fa fa-exclamation fa-stack-1x fa-inverse"></i></span><span>service state is WARNING</span></span>')
+        self.assert_(s == '<center class="font-warning"><span class="fa-stack" title="service state is WARNING"><i class="fa fa-circle fa-stack-2x font-warning"></i><i class="fa fa-exclamation fa-stack-1x fa-inverse"></i></span><div>service state is WARNING</div></center>')
         s = self.helper.get_html_state('service', 'UNKNOWN', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-unknown"><span class="fa-stack" title="service state is UNKNOWN"><i class="fa fa-circle fa-stack-2x font-unknown"></i><i class="fa fa-question fa-stack-1x fa-inverse"></i></span><span>service state is UNKNOWN</span></span>')
+        self.assert_(s == '<center class="font-unknown"><span class="fa-stack" title="service state is UNKNOWN"><i class="fa fa-circle fa-stack-2x font-unknown"></i><i class="fa fa-question fa-stack-1x fa-inverse"></i></span><div>service state is UNKNOWN</div></center>')
         s = self.helper.get_html_state('service', 'ok', extra='FLAPPING', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-ok"><span class="fa-stack" title="service state is OK and flapping"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x font-ok"></i></span><span>service state is OK and flapping</span></span>')
+        self.assert_(s == '<center class="font-ok"><span class="fa-stack" title="service state is OK and flapping"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x font-ok"></i></span><div>service state is OK and flapping</div></center>')
         s = self.helper.get_html_state('service', 'CRITICAL', extra='FLAPPING', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-critical"><span class="fa-stack" title="service state is CRITICAL and flapping"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x font-critical"></i></span><span>service state is CRITICAL and flapping</span></span>')
+        self.assert_(s == '<center class="font-critical"><span class="fa-stack" title="service state is CRITICAL and flapping"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x font-critical"></i></span><div>service state is CRITICAL and flapping</div></center>')
         s = self.helper.get_html_state('service', 'CRITICAL', extra='ACKNOWLEDGED', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-critical"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL and acknowledged"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span>service state is CRITICAL and acknowledged</span></span>')
+        self.assert_(s == '<center class="font-critical"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL and acknowledged"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><div>service state is CRITICAL and acknowledged</div></center>')
         s = self.helper.get_html_state('service', 'CRITICAL', extra='IN_DOWNTIME', text=True, icon=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-critical"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL but downtime is scheduled"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><span>service state is CRITICAL but downtime is scheduled</span></span>')
+        self.assert_(s == '<center class="font-critical"><span class="fa-stack" style="opacity: 0.5" title="service state is CRITICAL but downtime is scheduled"><i class="fa fa-circle fa-stack-2x font-critical"></i><i class="fa fa-arrow-down fa-stack-1x fa-inverse"></i></span><div>service state is CRITICAL but downtime is scheduled</div></center>')
 
         # Use label instead of built text ...
         s = self.helper.get_html_state('service', 'OK', text=True, icon=True, label='My own label')
         print "Result:", s
-        self.assert_(s == '<span class="font-ok"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><span>My own label</span></span>')
+        self.assert_(s == '<center class="font-ok"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-ok"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><div>My own label</div></center>')
 
         # Specify disabled state ...
         s = self.helper.get_html_state('service', 'OK', text=True, icon=True, label='My own label', disabled=True)
         print "Result:", s
-        self.assert_(s == '<span class="font-ok"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-greyed"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><span>My own label</span></span>')
+        self.assert_(s == '<center class="font-ok"><span class="fa-stack" title="service state is OK"><i class="fa fa-circle fa-stack-2x font-greyed"></i><i class="fa fa-arrow-up fa-stack-1x fa-inverse"></i></span><div>My own label</div></center>')
 
     def test_07_get_url(self):
         print "---"
