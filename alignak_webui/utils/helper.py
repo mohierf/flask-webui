@@ -246,6 +246,7 @@ class Helper(object):
         # ##text##
         # ##state##
         # ##font##
+        See settings.cfg
 
         Host state text (example with default configuration):
             <span class="fa-stack" title="host state is DOWN and flapping">
@@ -455,12 +456,12 @@ class Helper(object):
         :return: list of livestate elements
         :rtype: list
         """
-        # if Helper.livestate_age and (int(time.time()) - Helper.livestate_age) <= 60:
-        # logger.debug(
-        # "get_livestate, return self stored livestate, %d elements",
-        # len(Helper.livestate)
-        # )
-        # return Helper.livestate
+        if self.livestate_age and (int(time.time()) - self.livestate_age) <= 60:
+            logger.debug(
+                "get_livestate, return self stored livestate, helper: %s, %d elements",
+                self, len(self.livestate)
+            )
+            return self.livestate
 
         if not parameters:
             parameters = {}
@@ -511,8 +512,8 @@ class Helper(object):
                     if item['service_description']['display_name']:
                         item['friendly_name'] = item['service_description']['display_name']
 
-        Helper.livestate_age = int(time.time())
-        return Helper.livestate
+        self.livestate_age = int(time.time())
+        return self.livestate
 
     def get_html_livestate(self, bi=-1, search_filter=None):
         """
@@ -626,6 +627,9 @@ class Helper(object):
             <tr id="details-%s" class="collapse">
                 <td colspan="20">
             """ % (elt_id)
+            tr2 += """
+            <div class="pull-left">
+            """
             if passive_checks_enabled:
                 tr2 += """
                 <span>
@@ -649,10 +653,13 @@ class Helper(object):
                     int(item['current_attempt']),
                     int(item['max_attempts'])
                 )
+            tr2 += """
+            </div>
+            """
 
             if current_user and current_user.can_action():
                 tr2 += """
-                <span align="right">
+                <div class="pull-right">
                     <div class="btn-group"
                         role="group" data-type="actions" aria-label="Actions">
                         <button class="btn btn-default btn-xs"
@@ -664,7 +671,7 @@ class Helper(object):
                         <span class="hidden-sm hidden-xs"> Try to fix</span>
                         </button>
                     </div>
-                </span>"""
+                </div>"""
 
             tr2 += """
                 </td>
