@@ -456,11 +456,11 @@ class Helper(object):
         :rtype: list
         """
         # if Helper.livestate_age and (int(time.time()) - Helper.livestate_age) <= 60:
-            # logger.debug(
-                # "get_livestate, return self stored livestate, %d elements",
-                # len(Helper.livestate)
-            # )
-            # return Helper.livestate
+        # logger.debug(
+        # "get_livestate, return self stored livestate, %d elements",
+        # len(Helper.livestate)
+        # )
+        # return Helper.livestate
 
         if not parameters:
             parameters = {}
@@ -514,7 +514,7 @@ class Helper(object):
         Helper.livestate_age = int(time.time())
         return Helper.livestate
 
-    def get_html_livestate(self, bi=-1, filter=None):
+    def get_html_livestate(self, bi=-1, search_filter=None):
         """
         Get HTML formatted live state
 
@@ -528,27 +528,27 @@ class Helper(object):
         """
         parameters = {}
         # if bi:
-            # parameters.update({"where": '{"bi":%d}' % bi})
+        # parameters.update({"where": '{"bi":%d}' % bi})
 
         items = self.get_livestate(parameters=parameters)
         logger.debug(
             "get_html_livestate, livestate %d (%s), %d elements",
-            bi, filter, len(items)
+            bi, search_filter, len(items)
         )
         if bi != -1:
             items = [item for item in items if item['bi'] == bi]
         logger.debug(
             "get_html_livestate, livestate %d (%s), %d elements",
-            bi, filter, len(items)
+            bi, search_filter, len(items)
         )
 
-        if filter:
-            items = self.search_livestate(items, search=filter)
+        if search_filter:
+            items = self.search_livestate(items, search=search_filter)
 
         rows = []
         current_host = ''
         for item in items:
-            id = self.get_html_id(item['type'], item['name'])
+            elt_id = self.get_html_id(item['type'], item['name'])
 
             host_url = ''
             if current_host != item['host_name']['host_name']:
@@ -600,8 +600,8 @@ class Helper(object):
                     %s
                 </td>
             </tr>""" % (
-                id,
-                id,
+                elt_id,
+                elt_id,
                 self.get_html_state(item["type"], item["state"]),
                 host_url,
                 service_url,
@@ -621,14 +621,11 @@ class Helper(object):
                 passive_checks_enabled = item['service_description']['passive_checks_enabled']
                 freshness_threshold = item['service_description']['freshness_threshold']
                 active_checks_enabled = item['service_description']['passive_checks_enabled']
-            # tr2 = """
-            # <tr>
-                # <td colspan="20" class="hiddenRow">
-                    # <div class="accordion-body collapse" id="details-%s">""" % (id)
+
             tr2 = """
             <tr id="details-%s" class="collapse">
                 <td colspan="20">
-            """ % (id)
+            """ % (elt_id)
             if passive_checks_enabled:
                 tr2 += """
                 <span>
