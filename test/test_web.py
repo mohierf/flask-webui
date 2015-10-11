@@ -121,6 +121,7 @@ class basic_tests(unittest.TestCase):
             assert '<title>Home page</title>' in rv.data
             print 'login accepted - user attributes'
             assert current_user.username == 'admin'
+            print 'user:', current_user
             print 'user name:', current_user.get_name()
             print 'token:', current_user.get_auth_token()
             print 'username:', current_user.get_username()
@@ -134,8 +135,24 @@ class basic_tests(unittest.TestCase):
             assert '<title>Home page</title>' in rv.data
 
             print 'reload home page'
+            rv = self.app.get('/?search=test')
+            assert '<title>Home page</title>' in rv.data
+
+            print 'reload home page'
             rv = self.app.get('/index')
             assert '<title>Home page</title>' in rv.data
+
+            print 'refresh header'
+            rv = self.app.get('/refresh_header')
+            assert 'html_livesynthesis' in rv.data
+
+            print 'refresh livestate'
+            rv = self.app.get('/refresh_livestate')
+            assert 'livestate' in rv.data
+
+            print 'refresh livesynthesis'
+            rv = self.app.get('/livesynthesis')
+            assert 'livesynthesis' in rv.data
 
             print 'logout - go to login page'
             rv = self.logout()
@@ -151,6 +168,26 @@ class basic_tests(unittest.TestCase):
         ex = cm.exception # raised exception is available through exception property of context
         print 'exception:', str(ex)
         assert 'Not running with the Werkzeug Server' in str(ex)
+
+    def test_4_searchstring(self):
+        print ''
+        print 'test search string'
+
+        rv = self.app.get('/app_settings')
+        print rv.data
+        assert 'search_string' in rv.data
+        # assert not rv.data['search_string']
+        assert 'search_name' in rv.data
+        # assert not rv.data['search_name']
+
+        self.app.post('/app_settings', data=dict(
+            search_string='search_string',
+            search_name='search_name'
+        ))
+
+        rv = self.app.get('/app_settings')
+        assert 'search_string' in rv.data
+        assert rv.data['search_string'] == 'search_string'
 
 
 if __name__ == '__main__':

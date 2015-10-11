@@ -1062,9 +1062,13 @@ class Helper(object):
                     search_patterns.append("isnot:downtime")
                 if parameter == 'true' or parameter == 'yes' or parameter == '1':
                     search_patterns.append("is:downtime")
-            if search_type in Helper.host_states or search_type in Helper.extra_host_states:
+            if search_type.upper() in Helper.host_states:
                 search_patterns.append("is:%s" % search_type)
-            if search_type in Helper.service_states or search_type in Helper.extra_service_states:
+            if search_type.upper() in Helper.extra_host_states:
+                search_patterns.append("is:%s" % search_type)
+            if search_type.upper() in Helper.service_states:
+                search_patterns.append("is:%s" % search_type)
+            if search_type.upper() in Helper.extra_service_states:
                 search_patterns.append("is:%s" % search_type)
 
         if sorter is not None:

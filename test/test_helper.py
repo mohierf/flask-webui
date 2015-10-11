@@ -654,30 +654,24 @@ class test_helper(unittest.TestCase):
         search = self.helper.search_livestate(ls, "ack:0")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
-        # search = self.helper.search_livestate(ls, "is:downtime")
-        # print "Result, found %d elements" % len(search)
-        # search = self.helper.search_livestate(ls, "downtime:yes")
-        # print "Result, found %d elements" % len(search)
-        # search = self.helper.search_livestate(ls, "downtime:true")
-        # print "Result, found %d elements" % len(search)
-        # search = self.helper.search_livestate(ls, "downtime:1")
-        # print "Result, found %d elements" % len(search)
-        # search = self.helper.search_livestate(ls, "downtime:false")
-        # print "Result, found %d elements" % len(search)
-        # search = self.helper.search_livestate(ls, "downtime:no")
-        # print "Result, found %d elements" % len(search)
-        # search = self.helper.search_livestate(ls, "downtime:0")
-        # print "Result, found %d elements" % len(search)
-        # assert len(search) > 0
-        # search = self.helper.search_livestate(ls, "isnot:downtime")
-        # print "Result, found %d elements" % len(search)
-        # assert len(search) > 0
-        # search = self.helper.search_livestate(ls, "is:impact")
-        # print "Result, found %d elements" % len(search)
-        # assert len(search) > 0
-        # search = self.helper.search_livestate(ls, "isnot:impact")
-        # print "Result, found %d elements" % len(search)
-        # assert len(search) > 0
+        search = self.helper.search_livestate(ls, "is:downtime")
+        print "Result, found %d elements" % len(search)
+        search = self.helper.search_livestate(ls, "downtime:yes")
+        print "Result, found %d elements" % len(search)
+        search = self.helper.search_livestate(ls, "downtime:true")
+        print "Result, found %d elements" % len(search)
+        search = self.helper.search_livestate(ls, "downtime:1")
+        print "Result, found %d elements" % len(search)
+        search = self.helper.search_livestate(ls, "downtime:false")
+        print "Result, found %d elements" % len(search)
+        search = self.helper.search_livestate(ls, "downtime:no")
+        print "Result, found %d elements" % len(search)
+        search = self.helper.search_livestate(ls, "downtime:0")
+        print "Result, found %d elements" % len(search)
+        assert len(search) > 0
+        search = self.helper.search_livestate(ls, "isnot:downtime")
+        print "Result, found %d elements" % len(search)
+        assert len(search) > 0
         search = self.helper.search_livestate(ls, "is:0")
         print "Result, found %d elements" % len(search)
         # assert len(search) > 0
@@ -862,6 +856,21 @@ class test_helper(unittest.TestCase):
             print "Items:", len(html['rows']) / 2
             # for row in html['rows']:
                 # print "Item:", row
+
+        print "Get HTML live state ... filter"
+        html = self.helper.get_html_livestate(search_filter="type:host")
+        assert 'bi' in html
+        assert 'rows' in html
+        assert 'panel_bi' in html
+        print "Items:", len(html['rows'])
+
+        for bi in [0,1,2,3,4,5]:
+            print "Get HTML live state (BI = %d) ...and filter" % bi
+            html = self.helper.get_html_livestate(bi=bi, search_filter="type:host")
+            assert 'bi' in html
+            assert 'rows' in html
+            assert 'panel_bi' in html
+            print "Items:", len(html['rows'])
 
         # Backend disconnection
         frontend.disconnect()
