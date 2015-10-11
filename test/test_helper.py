@@ -756,7 +756,7 @@ class test_helper(unittest.TestCase):
         # Backend disconnection
         frontend.disconnect()
 
-    def test_00_livesynthesis(self):
+    def test_10_livesynthesis(self):
         print "---"
 
         # Initialize backend communication ...
@@ -802,7 +802,7 @@ class test_helper(unittest.TestCase):
         # Backend disconnection
         frontend.disconnect()
 
-    def test_10_livestate(self):
+    def test_00_livestate(self):
         print "---"
 
         # Initialize backend communication ...
@@ -842,7 +842,7 @@ class test_helper(unittest.TestCase):
             assert_true('bi' in item)
             assert_true('name' in item)
             assert_true('friendly_name' in item)
-        assert False
+        assert len(ls) == len(self.helper.livestate)
 
         print "Get HTML live state ..."
         print "Current user: ", current_user
@@ -850,18 +850,18 @@ class test_helper(unittest.TestCase):
         assert 'bi' in html
         assert 'rows' in html
         assert 'panel_bi' in html
-        print "Result:", html
-        for row in html['rows']:
-            print "Item:", row
+        print "Items:", len(html['rows'])
 
-        print "Get HTML live state (BI = 5) ..."
-        html = self.helper.get_html_livestate(bi=5)
-        assert 'rows' in html
-        assert 'panel_bi' in html
-        print "Result:", html
-        for row in html['rows']:
-            print "Item:", row
-
+        for bi in [0,1,2,3,4,5]:
+            print "Get HTML live state (BI = %d) ..." % bi
+            html = self.helper.get_html_livestate(bi=bi)
+            assert 'bi' in html
+            assert 'rows' in html
+            assert 'panel_bi' in html
+            print "Items:", len(html['rows'])
+            # for row in html['rows']:
+                # print "Item:", row
+        assert False
         # Backend disconnection
         frontend.disconnect()
 

@@ -479,7 +479,7 @@ class Helper(object):
             if not item['service_description']:
                 item['type'] = 'host'
                 item['id'] = item['host_name']['host_name']
-                item['bi'] = int(item['host_name']['business_impact'])
+                item['bi'] = item['host_name']['business_impact']
                 item['name'] = item['host_name']['host_name']
                 item['friendly_name'] = ""
                 if 'alias' in item['host_name']:
@@ -498,7 +498,7 @@ class Helper(object):
             if item['service_description']:
                 item['type'] = 'service'
                 item['id'] = item['service_description']['service_description']
-                item['bi'] = int(item['service_description']['business_impact'])
+                item['bi'] = item['service_description']['business_impact']
                 item['name'] = "%s/%s" % (
                     hosts_ids[item['service_description']['host_name']],
                     item['service_description']['service_description']
@@ -514,7 +514,7 @@ class Helper(object):
         Helper.livestate_age = int(time.time())
         return Helper.livestate
 
-    def get_html_livestate(self, bi=0, filter=None):
+    def get_html_livestate(self, bi=-1, filter=None):
         """
         Get HTML formatted live state
 
@@ -527,15 +527,23 @@ class Helper(object):
         :rtype: dict
         """
         parameters = {}
-        if bi:
-            parameters.update({"where": '{"bi":%d}' % bi})
+        # if bi:
+            # parameters.update({"where": '{"bi":%d}' % bi})
 
         items = self.get_livestate(parameters=parameters)
-        if bi:
+        logger.debug(
+            "get_html_livestate, livestate %d (%s), %d elements",
+            bi, filter, len(items)
+        )
+        if bi != -1:
             items = [item for item in items if item['bi'] == bi]
+        logger.debug(
+            "get_html_livestate, livestate %d (%s), %d elements",
+            bi, filter, len(items)
+        )
 
         if filter:
-            items = self.search_livestate(search=filter)
+            items = self.search_livestate(items, search=filter)
 
         rows = []
         current_host = ''
@@ -872,7 +880,7 @@ class Helper(object):
             'services_state': services_state
         }
 
-    def search_livestate(self, search, sorter=None):
+    def search_livestate(self, items, search, sorter=None):
         """
         Search in items list.
 
@@ -918,7 +926,7 @@ class Helper(object):
         """
         logger.debug("searching, pattern: %s", search)
 
-        items = self.livestate
+        # items = self.livestate
         if not items:
             logger.warning("searching, livestate is empty")
             return []

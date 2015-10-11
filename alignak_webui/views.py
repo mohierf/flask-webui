@@ -138,7 +138,7 @@ def refresh_livestate():
     data = {
         'livestate': helper.get_html_livestate(
             int(request.args.get('bi', 0)),
-            request.args.get('filter', None)
+            request.args.get('search', None)
         )
     }
 
