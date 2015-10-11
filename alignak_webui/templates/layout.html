@@ -1,4 +1,6 @@
 {# alignak_webui/templates/layout.html #}
+{# This file is part of (WebUI).                                                                #}
+{# Copyright (c) 2015: Frederic Mohier, frederic.mohier@gmail.com                               #}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -86,7 +88,12 @@
             </div>
         </div>
         {% include '_footer.html' %}
+
+        {# Include modal for application manifest #}
         {% include '_modal_about.html' %}
+
+        {# Include modal for search help documentation #}
+        {% include '_modal_search_help.html' %}
 
         {% assets "app_css" %}
         <link rel="stylesheet" href="{{ ASSET_URL }}"></link>

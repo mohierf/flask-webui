@@ -417,25 +417,34 @@ class Helper(object):
 
         Live state is a list of items with those fields:
         {
-            u'host_name': u'56080340f9e3858df8c5f5d5',
-            u'service_description': u'56080343f9e3858df8c5f67f',
-            u'acknowledged': False,
-            u'last_check': 1443375659,
-            u'state_type': u'HARD',
-            u'state': u'OK',
-            u'output': u'...',
-            u'long_output': u'...',
-            u'perf_data': u'...'
-            u'_created': u'Sun, 27 Sep 2015 15:14:04 GMT',
-            u'_updated': u'Sun, 27 Sep 2015 17:41:02 GMT',
-            u'_id': u'560807bcf9e38523556deffe',
-            u'_etag': u'c9ce5d09248a41c1061bd1b416c5f2dba247d50d',
-            u'_links': {
-                u'self': {
-                    u'href': u'livestate/560807bcf9e38523556deffe', u'title': u'Livestate'
+            "host_name": "56080340f9e3858df8c5f5d1",
+            "service_description": "56080344f9e3858df8c5f6cf",
+            "next_check": 0,
+            "last_state": "CRITICAL",
+            "last_state_type": "HARD",
+            "state": "CRITICAL",
+            "max_attempts": 0,
+            "last_state_changed": 0,
+            "last_check": 1444545805,
+            "state_type": "HARD",
+            "state_id": 0,
+            "current_attempt": 0,
+            "acknowledged": false,
+            "downtime": false,
+            "output": "cd: /root/scenarii/websites: No such file or directory",
+            "long_output": "",
+            "perf_data": ""
+            "_id": "5618fec8f9e385de8c228738",
+            "_links": {
+                "_created": "Sat, 10 Oct 2015 12:04:24 GMT",
+                "self": {
+                    "href": "livestate/5618fec8f9e385de8c228738",
+                    "title": "Livestate"
                 }
             },
-        }
+            "_updated": "Sun, 11 Oct 2015 06:43:26 GMT",
+            "_etag": "2512e62ae06f381dca390277a4915fb5c0adaaf4",
+        },
 
         host_name and service_description fields are embedded. Those fields are dictionaries of
         fields describing an host and a service.
@@ -472,7 +481,6 @@ class Helper(object):
                 item['id'] = item['host_name']['host_name']
                 item['bi'] = int(item['host_name']['business_impact'])
                 item['name'] = item['host_name']['host_name']
-                item['last_state_change'] = item['last_check']
                 item['friendly_name'] = ""
                 if 'alias' in item['host_name']:
                     if item['host_name']['alias']:
@@ -495,7 +503,6 @@ class Helper(object):
                     hosts_ids[item['service_description']['host_name']],
                     item['service_description']['service_description']
                 )
-                item['last_state_change'] = item['last_check']
                 item['friendly_name'] = ""
                 if 'alias' in item['service_description']:
                     if item['service_description']['alias']:
@@ -592,7 +599,7 @@ class Helper(object):
                 service_url,
                 item['state'].lower(),
                 item['state'],
-                self.print_duration(item['last_state_change'], duration_only=True, x_elts=2),
+                self.print_duration(item['last_state_changed'], duration_only=True, x_elts=2),
                 item['output'],
                 long_output
             )
@@ -628,10 +635,15 @@ class Helper(object):
                     <i class="fa fa-arrow-right" title="Active checks are enabled."></i>
                     <i>
                         Last check <strong>%s</strong>,
-                        next check in <strong>???</strong>,
-                        attempt <strong>???</strong>
+                        next check in <strong>%s</strong>,
+                        attempt <strong>%d / %d</strong>
                     </i>
-                </span>""" % (helper.print_duration(item['last_check'], duration_only=True, x_elts=2))
+                </span>""" % (
+                    helper.print_duration(item['last_check'], duration_only=True, x_elts=2),
+                    helper.print_duration(item['next_check'], duration_only=True, x_elts=2),
+                    int(item['current_attempt']),
+                    int(item['max_attempts'])
+                )
 
             if current_user and current_user.can_action():
                 tr2 += """
@@ -655,7 +667,8 @@ class Helper(object):
 
             rows.append(tr2)
 
-        panel_bi = """
+        if len(rows):
+            panel_bi = """
             <div id="livestate-bi-%d" class="panel panel-default">
                 <div class="panel-body">
                     <button type="button" class="btn btn-default btn-xs pull-left"
@@ -681,7 +694,25 @@ class Helper(object):
                         </tbody>
                     </table>
                 </div>
-            </div>""" % (bi, bi, len(rows), self.get_html_business_impact(bi, icon=True, text=True))
+            </div>""" % (
+                bi, bi,
+                len(rows) / 2,
+                self.get_html_business_impact(bi, icon=True, text=True)
+            )
+        else:
+            panel_bi = """
+            <div id="livestate-bi-%d" class="panel panel-default">
+                <div class="panel-body" >
+                    <h3 class="text-center">Business impact: %s</h3>
+
+                    <div class="alert alert-info">
+                        <p class="font-critical">No elements available.</p>
+                    </div>
+                </div>
+            </div>""" % (
+                bi,
+                self.get_html_business_impact(bi, icon=True, text=True)
+            )
 
         return {'bi': bi, 'rows': rows, 'panel_bi': panel_bi}
 
@@ -845,6 +876,37 @@ class Helper(object):
         """
         Search in items list.
 
+        Livestate item is:
+        {
+            "host_name": "56080340f9e3858df8c5f5d1",
+            "service_description": "56080344f9e3858df8c5f6cf",
+            "next_check": 0,
+            "last_state": "CRITICAL",
+            "last_state_type": "HARD",
+            "state": "CRITICAL",
+            "max_attempts": 0,
+            "last_state_changed": 0,
+            "last_check": 1444545805,
+            "state_type": "HARD",
+            "state_id": 0,
+            "current_attempt": 0,
+            "acknowledged": false,
+            "downtime": false,
+            "output": "cd: /root/scenarii/websites: No such file or directory",
+            "long_output": "",
+            "perf_data": ""
+            "_id": "5618fec8f9e385de8c228738",
+            "_links": {
+                "_created": "Sat, 10 Oct 2015 12:04:24 GMT",
+                "self": {
+                    "href": "livestate/5618fec8f9e385de8c228738",
+                    "title": "Livestate"
+                }
+            },
+            "_updated": "Sun, 11 Oct 2015 06:43:26 GMT",
+            "_etag": "2512e62ae06f381dca390277a4915fb5c0adaaf4",
+        },
+
         :param search: Search string
         :type search: str
         :param items: list of items to search in, if None, the function gets the system livestate
@@ -942,14 +1004,13 @@ class Helper(object):
                 if parameter.lower() == 'ack':
                     items = [item for item in items if item['acknowledged']]
                 elif parameter.lower() == 'downtime':
-                    items = [item for item in items if item['in_scheduled_downtime']]
+                    items = [item for item in items if item['downtime']]
                 elif parameter.lower() == 'impact':
                     items = [item for item in items if item['is_impact']]
                 else:
                     if parameter.isdigit():
                         items = [
-                            item for item in items if
-                            item['state'] == Helper.host_states[int(parameter)]
+                            item for item in items if item['state_id'] == int(parameter)
                         ]
                     else:
                         items = [
@@ -964,14 +1025,13 @@ class Helper(object):
                 if parameter.lower() == 'ack':
                     items = [item for item in items if not item['acknowledged']]
                 elif parameter.lower() == 'downtime':
-                    items = [item for item in items if not item['in_scheduled_downtime']]
+                    items = [item for item in items if not item['downtime']]
                 elif parameter.lower() == 'impact':
                     items = [item for item in items if not item['is_impact']]
                 else:
                     if parameter.isdigit():
                         items = [
-                            item for item in items if
-                            item['state'] != Helper.host_states[int(parameter)]
+                            item for item in items if item['state_id'] != int(parameter)
                         ]
                     else:
                         items = [

@@ -69,7 +69,7 @@ def set_search_string():
     If POST request, update UI data
     - search_string
     """
-    app.logger.info("Helper search string: %s", helper)
+    app.logger.info("Helper search string: %s", helper.search_string)
     if request.method == 'POST':
         if 'search_string' in request.form:
             helper.search_string = request.form['search_string']
@@ -102,6 +102,11 @@ def index():
     """
     app.logger.info("show home page ...")
 
+    search_string = request.args.get('search', None)
+    if search_string:
+        app.logger.info("new search string: %s", search_string)
+        helper.search_string = search_string
+
     return render_template(
         'home-page.html'
     )
@@ -115,7 +120,7 @@ def refresh_header():
 
     Update system live synthesis and build header elements
     """
-    data = {'livesynthesis': helper.get_html_livesynthesis()}
+    data = {'html_livesynthesis': helper.get_html_livesynthesis()}
 
     res = jsonify(**data)
     res.status_code = 200

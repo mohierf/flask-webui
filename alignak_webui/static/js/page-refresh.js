@@ -54,19 +54,22 @@ function do_refresh_header(){
       /*
        * Update page header : live synthesis
        */
-      if (! html['livesynthesis']) {
+      if (! html['html_livesynthesis']) {
+         if (refresh_logs) console.error("Bad data received, expected : html['livesynthesis']");
          return
       }
+
+      var lv = html['html_livesynthesis'];
       // Refresh header bar hosts/services state ...
       if (
             $('#hosts-states-popover-content').length > 0 &&
-            html['livesynthesis']['hosts_states_popover'] &&
+            lv['hosts_states_popover'] &&
             $('#services-states-popover-content').length > 0 &&
-            html['livesynthesis']['services_states_popover']
+            lv['services_states_popover']
          ) {
          // Update popovers content
-         $('#hosts-states-popover-content').html(html['livesynthesis']['hosts_states_popover']);
-         $('#services-states-popover-content').html(html['livesynthesis']['services_states_popover']);
+         $('#hosts-states-popover-content').html(lv['hosts_states_popover']);
+         $('#services-states-popover-content').html(lv['services_states_popover']);
 
          // Compute problems
          var nb_problems=0;
@@ -89,7 +92,7 @@ function do_refresh_header(){
          ].join('');
 
          // Update navbar icon
-         $('#overall-hosts-states').html(html['livesynthesis']['hosts_state']);
+         $('#overall-hosts-states').html(lv['hosts_state']);
          // Activate the header hosts state popover ...
          $('#overall-hosts-states a').popover({
             trigger: 'focus hover',
@@ -104,7 +107,7 @@ function do_refresh_header(){
          });
 
          // Update navbar icon
-         $('#overall-services-states').html(html['livesynthesis']['services_state']);
+         $('#overall-services-states').html(lv['services_state']);
          // Activate the header services state popover ...
          $('#overall-services-states a').popover({
             trigger: 'focus hover',
@@ -164,6 +167,7 @@ function do_refresh_livestate(search){
        * Update page header : live synthesis
        */
       if (! html['livesynthesis']) {
+         if (refresh_logs) console.error("Bad data received, expected : html['livesynthesis']");
          return
       }
 
@@ -289,7 +293,7 @@ function do_refresh_livestate(search){
          url: "/refresh_livestate",
          data: {
             "bi": bi,
-            "filter": search
+            "search": search_filter
          },
          method: "get",
          dataType: "json"
@@ -300,6 +304,7 @@ function do_refresh_livestate(search){
           * Update page header : live synthesis
           */
          if (! html['livestate']) {
+            if (refresh_logs) console.error("Bad data received, expected : html['livestate']");
             return
          }
 
@@ -353,6 +358,7 @@ function do_refresh() {
    })
    .done(function(html, textStatus, jqXHR) {
       search_filter = html.search_string;
+      if (refresh_logs) console.log("Search filter: ", search_filter);
 
       // Refresh current page ...
 
@@ -360,7 +366,7 @@ function do_refresh() {
       do_refresh_header();
 
       // Refresh livestate ...
-      do_refresh_livestate(search_filter);
+      do_refresh_livestate();
    });
 }
 
@@ -374,7 +380,7 @@ function check_UI_backend(){
       url: '/ping'
    })
    .done(function( data, textStatus, jqXHR ) {
-      if (refresh_logs) console.log(data);
+      if (refresh_logs) console.log("ping", data);
       if (sessionStorage.getItem("refresh_active") == '1') {
          nb_refresh_retry = 0;
 

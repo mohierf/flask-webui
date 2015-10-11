@@ -1,0 +1,45 @@
+{# alignak_webui/templates/_modal_search_help.html #}
+{# This file is part of (WebUI).                                                                #}
+{# Copyright (c) 2015: Frederic Mohier, frederic.mohier@gmail.com                               #}
+
+<!-- Search help documentation -->
+<div class="modal fade" id="search_help_modal" tabindex="-1" role="dialog" aria-labelledby="ModalAboutTitle">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h3 class="modal-title">Searching hosts and services</h3>
+            </div>
+
+            <div class="modal-body">
+                <p>To search for services and hosts, use the following search qualifiers in any combination.</p>
+
+                <h4>Search hosts or services</h4>
+                <p>
+                    By default, searching for elements will return both hosts and services. However, you can use the type qualifier to restrict search results to hosts or services only.
+                </p>
+                <ul>
+                    <li><code>www type:host</code> Matches hosts with "www" in their hostname.</li>
+                </ul>
+
+                <h4>Search by the state of an element</h4>
+                <p>The <code>is</code> and <code>isnot</code> qualifiers finds elements by a certain state. For example:</p>
+                <ul>
+                    <li><code>is:DOWN</code> Matches elements that are DOWN.</li>
+                    <li><code>isnot:0</code> Matches elements that are not OK or UP (all the problems). Equivalent to <code>isnot:OK isnot:UP</code></li>
+                    <li><code>isnot:OK isnot:UP</code> Same as previous line <code>isnot:0</code></li>
+                    <li><code>load isnot:ok</code> Matches services with the word "load", in states warning, critical, unknown or pending.</li>
+                    <li><code>is:ack</code> Matches elements that are acknownledged.</li>
+                    <li><code>is:downtime</code> Matches elements that are in a scheduled downtime.</li>
+                </ul>
+
+                <h4>Search by the business impact of an element</h4>
+                <p>The <code>bp</code> (or <code>bi</code>) qualifier finds elements by it's business impact. For example:</p>
+                <ul>
+                <li><code>bp:5</code> Matches hosts and services that are top for business.</li>
+                <li><code>bp:>1</code> Matches hosts and services with a business impact greater than 1.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

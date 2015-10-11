@@ -1,4 +1,8 @@
-<form id ="nav-bar-form" role="form" class="navbar-form hidden-xs" method="POST" action="/app_settings">
+{# alignak_webui/templates/_filters.html #}
+{# This file is part of (WebUI).                                                                #}
+{# Copyright (c) 2015: Frederic Mohier, frederic.mohier@gmail.com                               #}
+
+<form id ="nav-bar-form" role="form" class="navbar-form hidden-xs" method="GET" action="">
     {% if settings.get('ui.filters', '0') != '0' %}
     <div class="dropdown form-group">
         <button class="btn btn-default dropdown-toggle" type="button" id="filters_menu" data-toggle="dropdown" aria-expanded="true">
@@ -22,7 +26,11 @@
             <li role="presentation"><a role="menuitem" href="?search=bp:>=1">Impact : {{ helper.get_html_business_impact(1)|safe }}</a></li>
             <li role="presentation"><a role="menuitem" href="?search=bp:>=0">Impact : {{ helper.get_html_business_impact(0)|safe }}</a></li>
             <li role="presentation" class="divider"></li>
-            <li role="presentation"><a role="menuitem" onclick="display_modal('/modal/helpsearch')"><strong><i class="fa fa-question-circle"></i> Search syntax</strong></a></li>
+            <li role="presentation">
+                <a role="menuitem" data-toggle="modal" data-target="#search_help_modal">
+                    <strong><i class="fa fa-question-circle"></i> Search syntax</strong>
+                </a>
+            </li>
         </ul>
     </div>
     {% endif %}
@@ -31,7 +39,7 @@
         <label class="sr-only" for="search">Filter</label>
         <div class="input-group">
             <span class="input-group-addon hidden-xs hidden-sm"><i class="fa fa-search"></i> {{ helper.search_name if helper.search_name else '' }}</span>
-            <input class="form-control" type="search" id="search_string" name="search_string" value="{{ helper.search_string if helper.search_string else '' }}">
+            <input class="form-control" type="search" id="search" name="search" value="{{ helper.search_string if helper.search_string else '' }}">
         </div>
     </div>
     {% endif %}
@@ -55,24 +63,26 @@
     // Set this variable to be used in page-refresh.js functions ...
     var app_search_string = "{{ settings.get('ui.search_string', '') }}";
 
+/*
     // Search filter changed in the header input form ...
     $('#nav-bar-form').on('submit', function(event) {
         var $form = $(this);
 
         // Block automatic submission ...
-        event.preventDefault();
+        //event.preventDefault();
 
         $.ajax({
             type: $form.attr('method'),
             url: $form.attr('action'),
             data: $form.serialize()
         })
-        .done(function(html, textStatus, jqXHR) {
+        .done(function( html, textStatus, jqXHR ) {
             console.log("Refreshing search string: ", html);
         })
         .fail(function( jqXHR, textStatus, errorThrown ) {
             console.error("Ajax error.", errorThrown, textStatus);
         });
     });
+*/
 </script>
 {% endif %}
