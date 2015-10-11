@@ -63,6 +63,7 @@ class Helper(object):
     search_string = None
     livestate = None
     livestate_age = None
+    livestate_parameters = None
 
     def __init__(self, application):
         """Store application reference"""
@@ -457,26 +458,34 @@ class Helper(object):
         :rtype: list
         """
         if self.livestate_age and (int(time.time()) - self.livestate_age) <= 60:
+            # logger.debug(
+                # "get_livestate, get livestate from backend, parameters: %s / %s",
+                # parameters,
+                # self.livestate_parameters
+            # )
+            # if not cmp(self.livestate_parameters, parameters):
             logger.debug(
                 "get_livestate, return self stored livestate, helper: %s, %d elements",
                 self, len(self.livestate)
             )
             return self.livestate
 
+        logger.debug("get_livestate, get livestate from backend, parameters: %s", parameters)
+
         if not parameters:
             parameters = {}
+
+        # self.livestate_parameters = parameters
 
         if "embedded" not in parameters:
             parameters.update({"embedded": '{"host_name": 1, "service_description": 1}'})
         if "sort" not in parameters:
-            parameters.update({"sort": 'host_name, service_description'})
-        # if "where" not in parameters:
-            # parameters.update({"where": '{"state":true}'})
+            parameters.update({"sort": 'state_id'})
 
-        Helper.livestate = frontend.get_livestate(parameters=parameters)
+        self.livestate = frontend.get_livestate(parameters=parameters)
         hosts_ids = {}
         # Searching for hosts first ...
-        for item in Helper.livestate:
+        for item in self.livestate:
             if not item['service_description']:
                 item['type'] = 'host'
                 item['id'] = item['host_name']['host_name']
@@ -495,7 +504,7 @@ class Helper(object):
                     hosts_ids[item['host_name']['_id']] = item['host_name']['host_name']
 
         # Searching for services next ...
-        for item in Helper.livestate:
+        for item in self.livestate:
             if item['service_description']:
                 item['type'] = 'service'
                 item['id'] = item['service_description']['service_description']

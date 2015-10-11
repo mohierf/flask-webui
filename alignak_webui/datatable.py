@@ -352,9 +352,9 @@ class Datatable(object):
         """
         View page for an element
         """
+        logger.debug("request for %s element named %s", self.object_type, name)
 
         return render_template(
             'tpl-%s' % self.object_type,
-            app=app,
             element=name
         )

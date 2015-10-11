@@ -31,10 +31,11 @@
     ------------------------
 """
 
-from alignak_webui import app
-from alignak_webui.datatable import Datatable
+from alignak_webui import app, frontend
+from alignak_webui.datatable import Datatable, DatatableException
 from alignak_webui.element import ElementsView
-from flask import Blueprint
+from flask import Blueprint, jsonify, render_template
+from flask_login import login_required
 from logging import getLogger
 
 
@@ -56,6 +57,12 @@ class ServicesView(ElementsView):
         super(ServicesView, self).__init__()
         self.object_type = "service"
         self.element_table = Datatable(self.object_type)
+
+    @login_required
+    def get(self, name):
+        """ Call default datatables function """
+        logger.debug("ServicesView, get: %s", name)
+        return super(ServicesView, self).get(name)
 
 
 # Register view class near Flask application
