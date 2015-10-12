@@ -264,7 +264,9 @@ class Datatable(object):
         logger.info("backend parameters: %s", parameters)
         resp = frontend.get_objects(self.object_type, parameters=parameters)
         # page_number = int(resp['_meta']['page'])
-        total = int(resp['_meta']['total'])
+        total = 0
+        if '_meta' in resp:
+            total = int(resp['_meta']['total'])
         # max_results = int(resp['_meta']['max_results'])
         # recordsFiltered = 0
         # if total > max_results:
@@ -278,7 +280,7 @@ class Datatable(object):
             "draw": draw,
             "recordsTotal": total,
             "recordsFiltered": total,
-            "data": resp['_items']
+            "data": resp['_items'] if '_items' in resp else resp
         }
         # response.content_type = 'application/json'
         logger.info("response: %s", rsp)
