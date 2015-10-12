@@ -123,7 +123,7 @@ class ElementsView(FlaskView):
                     })
 
         return render_template(
-            'element.html',
+            '%s.html' % self.object_type,
             object_type=self.object_type,
             columns=table_columns,
             object=resp['_items'][0]
