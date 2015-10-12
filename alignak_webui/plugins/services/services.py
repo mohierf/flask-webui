@@ -60,7 +60,7 @@ class ServicesView(ElementsView):
 
     @login_required
     def get(self, name):
-        """ Call default datatables function """
+        """ Call default ElementsView class function """
         logger.debug("ServicesView, get: %s", name)
         return super(ServicesView, self).get(name)
 

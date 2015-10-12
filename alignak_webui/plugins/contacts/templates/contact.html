@@ -1,4 +1,4 @@
-{# alignak_webui/hosts/element.html_ #}
+{# alignak_webui/contacts/element.html_ #}
 {# This file is part of (WebUI).                                                                #}
 {# Copyright (c) 2015: Frederic Mohier, frederic.mohier@gmail.com                               #}
 
@@ -10,7 +10,7 @@
 {% endblock %}
 
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}Contact page{% endblock %}
 
 {% block body %}
     <h1>{{ title }}</h1>
@@ -21,7 +21,7 @@
         </div>
     {% else %}
         <div class="alert alert-info">
-            <p class="font-info"> Test : {{ object['host_name'] }}</p>
+            <p class="font-info"> Contact : {{ object }}</p>
         </div>
         <div class="container-fluid">
             <div class="table-responsive">

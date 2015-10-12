@@ -72,7 +72,7 @@ class HostsView(ElementsView):
 
     @login_required
     def get(self, name):
-        """ Call default datatables function """
+        """ Call default ElementsView class function """
         logger.debug("HostsView, get: %s", name)
         return super(HostsView, self).get(name)
 

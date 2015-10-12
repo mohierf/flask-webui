@@ -1,0 +1,59 @@
+{# alignak_webui/hosts/element.html_ #}
+{# This file is part of (WebUI).                                                                #}
+{# Copyright (c) 2015: Frederic Mohier, frederic.mohier@gmail.com                               #}
+
+{% extends "layout.html" %}
+
+{% block extra_css %}
+{% endblock %}
+{% block extra_js %}
+{% endblock %}
+
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <h1>{{ title }}</h1>
+
+    {% if not object %}
+        <div class="alert alert-info">
+            <p class="font-critical">No element found.</p>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p class="font-info"> Test X : {{ object['host_name'] }}</p>
+        </div>
+        <div class="container-fluid">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <tbody>
+                        {% for column in columns %}
+                        {% if column['name'] in object  %}
+                            {% set value = object[column['name']] %}
+                            <tr data-name="{{ column['name'] }}" data-type="{{ column['type'] }}">
+                                <td>{{ column['title'] }}</td>
+                                {% if value['_id'] is defined %}
+                                <td>{{ 'Dict' }}</td>
+                                {% else %}
+                                {% if value[0] is defined and value[0]['_id'] is defined %}
+                                <td>{{ 'Array of Dict' }}</td>
+                                {% else %}
+                                <td>{{ value }}</td>
+                                {% endif %}
+                                {% endif %}
+                            </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    <script>
+    $(document).ready(function() {
+        var debugJs = true;
+
+    });
+    </script>
+    {% endif %}
+{% endblock %}

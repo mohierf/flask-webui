@@ -60,7 +60,7 @@ class ContactsView(ElementsView):
 
     @login_required
     def get(self, name):
-        """ Call default datatables function """
+        """ Call default ElementsView class function """
         logger.debug("ContactsView, get: %s", name)
         return super(ContactsView, self).get(name)
 
