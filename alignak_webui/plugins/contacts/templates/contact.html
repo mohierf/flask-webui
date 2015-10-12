@@ -1,8 +1,15 @@
-{# alignak_webui/contacts/element.html_ #}
-{# This file is part of (WebUI).                                                                #}
-{# Copyright (c) 2015: Frederic Mohier, frederic.mohier@gmail.com                               #}
+{#
+    File: alignak_webui/contacts/contact.html_
+    This file is part of (WebUI).
+    Copyright (c) 2015: Frederic Mohier, frederic.mohier@gmail.com
+    --------------------
+    Parameters:
+
+#}
 
 {% extends "layout.html" %}
+
+{% import 'macros.html' as macros %}
 
 {% block extra_css %}
 {% endblock %}
@@ -24,6 +31,52 @@
             <p class="font-info"> Contact : {{ object }}</p>
         </div>
         <div class="container-fluid">
+        <div class="panel-group" id="accordion">
+            <div class="panel panel-default" id="panel1">
+                <div class="panel-heading">
+                    <h3 class="panel-title" data-toggle="collapse" data-target="#collapse1" href="#collapse1"><i class="caret"></i> First rendering test ... form in one macro call!</h3>
+                </div>
+                <div id="collapse1" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    {{ macros.render_form(form, action_url='/submit_url', action_text='Submit Form') }}
+                </div>
+                </div>
+            </div>
+
+            <div class="panel panel-default" id="panel2">
+                <div class="panel-heading">
+                    <h3 class="panel-title" data-toggle="collapse" data-target="#collapse2" href="#collapse2"><i class="caret"></i> Second rendering test ... one macro call per form field!</h3>
+                </div>
+                <div id="collapse2" class="panel-collapse collapse">
+                <div class="panel-body">
+                    {% call macros.render_form(form, action_url='test', action_text='Login',
+                                                class_='login-form') %}
+                        {% for column in columns %}
+                        {% if column['name'] in object  %}
+                            {% set value = object[column['name']] %}
+                            {% if value['_id'] is defined %}
+                                <span>{{ 'Dict' }}</span>
+                            {% else %}
+                            {% if value[0] is defined and value[0]['_id'] is defined %}
+                                <span>{{ 'Array of Dict' }}</span>
+                            {% else %}
+                                <span>{{ column }}</span>
+                                {{ macros.render_field(form[column['name']], label_visible=true, placeholder='Email', type='email') }}
+                            {% endif %}
+                            {% endif %}
+                        {% endif %}
+                        {% endfor %}
+                    {% endcall %}
+                </div>
+                </div>
+            </div>
+
+            <div class="panel panel-default" id="panel2">
+                <div class="panel-heading">
+                    <h3 class="panel-title" data-toggle="collapse" data-target="#collapse3" href="#collapse3"><i class="caret"></i> Third rendering test ... build a table!</h3>
+                </div>
+                <div id="collapse3" class="panel-collapse collapse">
+                <div class="panel-body">
             <div class="table-responsive">
                 <table class="table table-striped">
                     <tbody>
@@ -47,6 +100,10 @@
                     </tbody>
                 </table>
             </div>
+                </div>
+                </div>
+            </div>
+        </div>
         </div>
 
     <script>

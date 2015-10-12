@@ -34,7 +34,7 @@
 from alignak_webui import app, frontend
 from alignak_webui.datatable import Datatable, DatatableException
 from alignak_webui.element import ElementsView
-from flask import Blueprint, jsonify, render_template
+from flask import Blueprint, jsonify, render_template, request
 from flask_login import login_required
 from logging import getLogger
 
@@ -47,6 +47,11 @@ PLUGIN_NAME = "contacts"
 # Flask Blueprint object
 bp_name = Blueprint(PLUGIN_NAME, __name__, template_folder='templates', static_folder='static')
 
+from wtforms import Form, BooleanField, StringField, validators
+
+class ContactForm(Form):
+    contact_name = StringField('contact_name', [validators.Length(min=4, max=25)])
+    email        = StringField('email', [validators.Length(min=6, max=35)])
 
 class ContactsView(ElementsView):
     """ Backend contact object """
@@ -62,6 +67,7 @@ class ContactsView(ElementsView):
     def get(self, name):
         """ Call default ElementsView class function """
         logger.debug("ContactsView, get: %s", name)
+        # self.edit_form = ContactForm(request.form)
         return super(ContactsView, self).get(name)
 
 

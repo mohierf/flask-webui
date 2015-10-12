@@ -1,8 +1,15 @@
-{# alignak_webui/hosts/element.html_ #}
-{# This file is part of (WebUI).                                                                #}
-{# Copyright (c) 2015: Frederic Mohier, frederic.mohier@gmail.com                               #}
+{#
+    File: alignak_webui/hosts/host.html_
+    This file is part of (WebUI).
+    Copyright (c) 2015: Frederic Mohier, frederic.mohier@gmail.com
+    --------------------
+    Parameters:
+
+#}
 
 {% extends "layout.html" %}
+
+{% import 'macros.html' as macros %}
 
 {% block extra_css %}
 {% endblock %}
@@ -10,7 +17,7 @@
 {% endblock %}
 
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}Host page{% endblock %}
 
 {% block body %}
     <h1>{{ title }}</h1>
@@ -21,32 +28,21 @@
         </div>
     {% else %}
         <div class="alert alert-info">
-            <p class="font-info"> Test X : {{ object['host_name'] }}</p>
+            <p class="font-info"> Host : {{ object }}</p>
         </div>
         <div class="container-fluid">
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <tbody>
-                        {% for column in columns %}
-                        {% if column['name'] in object  %}
-                            {% set value = object[column['name']] %}
-                            <tr data-name="{{ column['name'] }}" data-type="{{ column['type'] }}">
-                                <td>{{ column['title'] }}</td>
-                                {% if value['_id'] is defined %}
-                                <td>{{ 'Dict' }}</td>
-                                {% else %}
-                                {% if value[0] is defined and value[0]['_id'] is defined %}
-                                <td>{{ 'Array of Dict' }}</td>
-                                {% else %}
-                                <td>{{ value }}</td>
-                                {% endif %}
-                                {% endif %}
-                            </tr>
-                        {% endif %}
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="panel-group" id="accordion">
+            <div class="panel panel-default" id="panel1">
+                <div class="panel-heading">
+                    <h3 class="panel-title" data-toggle="collapse" data-target="#collapse1" href="#collapse1"><i class="caret"></i> First rendering test ... form in one macro call!</h3>
+                </div>
+                <div id="collapse1" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    {{ macros.render_form(form, action_url='/submit_url', action_text='Submit Form', label_visible=False, disabled=True) }}
+                </div>
+                </div>
             </div>
+        </div>
         </div>
 
     <script>
