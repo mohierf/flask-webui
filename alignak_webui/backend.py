@@ -589,13 +589,13 @@ class FrontEnd(object):
             hosts_synthesis.update({
                 "pct_" + state: round(
                     100.0 * hosts_synthesis['nb_' + state] / hosts_synthesis['nb_elts'], 2
-                )
+                ) if hosts_synthesis['nb_elts'] else 0.0
             })
         for state in 'acknowledged', 'in_downtime', 'flapping', 'problems':
             hosts_synthesis.update({
                 "pct_" + state: round(
                     100.0 * hosts_synthesis['nb_' + state] / hosts_synthesis['nb_elts'], 2
-                )
+                ) if hosts_synthesis['nb_elts'] else 0.0
             })
 
         # Services synthesis
@@ -618,13 +618,13 @@ class FrontEnd(object):
             services_synthesis.update({
                 "pct_" + state: round(
                     100.0 * services_synthesis['nb_' + state] / services_synthesis['nb_elts'], 2
-                )
+                ) if services_synthesis['nb_elts'] else 0.0
             })
         for state in 'acknowledged', 'in_downtime', 'flapping', 'problems':
             services_synthesis.update({
                 "pct_" + state: round(
                     100.0 * services_synthesis['nb_' + state] / services_synthesis['nb_elts'], 2
-                )
+                ) if services_synthesis['nb_elts'] else 0.0
             })
 
         synthesis = {
