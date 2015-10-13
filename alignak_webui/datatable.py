@@ -335,6 +335,7 @@ class Datatable(object):
                     "title": field_title,
                     "defaultContent": field_default,
                     "type": field['type'],
+                    "format": field["ui"]["format"],
                     "orderable": field["ui"]["orderable"],
                     "searchable": field["ui"]["searchable"],
                     # "render": 'function () { console.log("Render %s"); }' % field["name"],

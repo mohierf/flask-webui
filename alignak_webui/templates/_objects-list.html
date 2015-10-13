@@ -209,6 +209,16 @@
                 $(this).addClass('selected');
             }
         });
+
+        $('body').on('dblclick', '#tbl_{{object_type}} tbody tr', function (e) {
+            var table = $('#tbl_{{object_type}}').DataTable({ retrieve: true });
+            table.cells($(this), 'host_name:name').every( function () {
+                var data = this.data();
+
+                if (debugJs) console.debug('Navigate to: /{{object_type}}s/'+data);
+                $(location).attr('href', '/{{object_type}}s/'+data);
+            } );
+        });
     });
     </script>
     {% endif %}
