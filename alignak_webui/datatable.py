@@ -304,6 +304,7 @@ class Datatable(object):
 
         # Data model ...
         table_columns = []
+        table_links = {}
         ui_dm = {"title": "All %s (XXX items)" % self.object_type}
         fields = frontend.get_ui_data_model(self.object_type)
         if not fields:
@@ -324,6 +325,11 @@ class Datatable(object):
                 field_title = field["name"]
                 if 'title' in field['ui']:
                     field_title = field["ui"]["title"]
+                if 'schema' in field and 'data_relation' in field['schema']:
+                    table_links.update({
+                        field["name"]: field['schema']['data_relation']['resource']
+                    })
+
                 table_columns.append({
                     "name": field["name"],
                     "title": field_title,
@@ -331,6 +337,7 @@ class Datatable(object):
                     "type": field['type'],
                     "orderable": field["ui"]["orderable"],
                     "searchable": field["ui"]["searchable"],
+                    # "render": 'function () { console.log("Render %s"); }' % field["name"],
                     "data": field['name']
                 })
 
@@ -347,6 +354,7 @@ class Datatable(object):
             object_type=self.object_type,
             title=ui_dm["title"],
             columns=table_columns,
+            links=table_links,
             list=resp['_items'] if '_items' in resp else resp
         )
 

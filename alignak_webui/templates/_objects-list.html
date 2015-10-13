@@ -1,6 +1,12 @@
-{# alignak_webui/templates/_objects-list.html_ #}
-{# This file is part of (WebUI).                                                                #}
-{# Copyright (c) 2015: Frederic Mohier, frederic.mohier@gmail.com                               #}
+{#
+    File: alignak_webui/templates/_objects-list.html
+    --------------------
+    This file is part of (WebUI).
+    Copyright (c) 2015: Frederic Mohier, frederic.mohier@gmail.com
+    --------------------
+    Parameters:
+
+#}
 
 {% extends "layout.html" %}
 
@@ -45,9 +51,11 @@
         </div>
 
     <script>
-    $(document).ready(function() {
-        var debugJs = true;
+    var debugJs = true;
+    var column_links = {{ links|tojson|safe if links else null }};
+    var columns = {{ columns|tojson|safe }};
 
+    $(document).ready(function() {
         $('#tbl_{{object_type}}').DataTable( {
             // Table features
             // Pagination and length change
@@ -64,7 +72,7 @@
             //responsive: true,
 
             // Server side processing
-            "columns": {{ columns|tojson|safe }},
+            "columns": columns,
             "serverSide": true,
             "ajax": {
                 "url": "/{{object_type}}s/data",
@@ -126,6 +134,16 @@
                 } );
             },
 
+            // Each created row ...
+            createdRow: function ( row, data, index ) {
+                var table = $('#tbl_{{object_type}}').DataTable({ retrieve: true });
+                /*
+                if (debugJs) console.debug('Datatable createdRow, row: ' + row);
+                if (debugJs) console.debug('Datatable createdRow, data: ' + data);
+                if (debugJs) console.debug('Datatable createdRow, index: ' + index);
+                */
+            },
+
             /*
                 B - buttons
                 l - length changing input control
@@ -162,6 +180,23 @@
 
         $('#tbl_{{object_type}}').on( 'init.dt', function ( e, settings ) {
             if (debugJs) console.debug('Datatable event, init ...');
+            var table = $('#tbl_{{object_type}}').DataTable({ retrieve: true });
+            /*
+            if (debugJs) console.debug('Datatable createdRow, row: ' + row);
+            if (debugJs) console.debug('Datatable createdRow, data: ' + data);
+            if (debugJs) console.debug('Datatable createdRow, index: ' + index);
+            */
+            $.each(column_links, function (name, value) {
+                if (debugJs) console.debug('Datatable links: ' + name + " = " + value);
+                //table.column( name+':name' ).data();
+                if (debugJs) console.debug('Datatable data: ', table.column( name+':name' ).data());
+                table.cells(undefined, name+':name').every( function (rowIdx, colIdx, tableLoop, cellLoop) {
+                    var data = this.data();
+                    // ... do something with data(), or this.node(), etc
+                    if (debugJs) console.debug('Cell data: ', rowIdx, colIdx, tableLoop, cellLoop, data);
+                    this.data('/'+column_links[name]+'/'+data)
+                } );
+            });
         });
 
         $('body').on('click', '#tbl_{{object_type}} tbody tr', function (e) {
